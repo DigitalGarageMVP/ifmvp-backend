@@ -1,0 +1,49 @@
+server:
+  port: ${SERVER_PORT:8083}
+  servlet:
+    context-path: /
+  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000}
+
+spring:
+  application:
+    name: statistics-service
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:statsdb}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    show-sql: ${JPA_SHOW_SQL:true}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+azure:
+  servicebus:
+    connection-string: ${AZURE_SERVICEBUS_CONNECTION_STRING}
+    queue:
+      email-events: ${AZURE_QUEUE_EMAIL_EVENTS:email-events}
+      email-open-events: ${AZURE_QUEUE_OPEN_EVENTS:email-open-events}
+      attachment-click-events: ${AZURE_QUEUE_CLICK_EVENTS:attachment-click-events}
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY:defaultSecretKey}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+  api-docs:
+    path: /api-docs
+
+logging:
+  level:
+    com.email.stats: ${LOG_LEVEL:DEBUG}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

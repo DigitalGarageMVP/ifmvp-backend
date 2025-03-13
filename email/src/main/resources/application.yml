@@ -1,0 +1,60 @@
+server:
+  port: ${SERVER_PORT:8081}
+  servlet:
+    context-path: /
+  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000}
+
+spring:
+  application:
+    name: email-service
+  datasource:
+    command:
+      url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_COMMAND_DB:emaildb}
+      username: ${POSTGRES_USER:postgres}
+      password: ${POSTGRES_PASSWORD:postgres}
+    query:
+      url: jdbc:mongodb://${MONGODB_HOST:localhost}:${MONGODB_PORT:27017}/${MONGODB_DB:emailviews}
+      username: ${MONGODB_USER:mongo}
+      password: ${MONGODB_PASSWORD:mongo}
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    show-sql: ${JPA_SHOW_SQL:true}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+azure:
+  storage:
+    connection-string: ${AZURE_STORAGE_CONNECTION_STRING}
+    container:
+      attachments: ${AZURE_CONTAINER_ATTACHMENTS:email-attachments}
+  servicebus:
+    connection-string: ${AZURE_SERVICEBUS_CONNECTION_STRING}
+    queue:
+      email-events: ${AZURE_QUEUE_EMAIL_EVENTS:email-events}
+
+mock:
+  delivery:
+    service-url: ${MOCK_DELIVERY_URL:http://localhost:8082}
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY:defaultSecretKey}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+  api-docs:
+    path: /api-docs
+
+logging:
+  level:
+    com.email.email: ${LOG_LEVEL:DEBUG}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

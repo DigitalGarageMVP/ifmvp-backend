@@ -1,0 +1,37 @@
+server:
+  port: ${SERVER_PORT:8082}
+  servlet:
+    context-path: /
+  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000}
+
+spring:
+  application:
+    name: mock-delivery-service
+
+azure:
+  servicebus:
+    connection-string: ${AZURE_SERVICEBUS_CONNECTION_STRING}
+    queue:
+      email-events: ${AZURE_QUEUE_EMAIL_EVENTS:email-events}
+      email-open-events: ${AZURE_QUEUE_OPEN_EVENTS:email-open-events}
+      attachment-click-events: ${AZURE_QUEUE_CLICK_EVENTS:attachment-click-events}
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY:defaultSecretKey}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+  api-docs:
+    path: /api-docs
+
+logging:
+  level:
+    com.email.mock: ${LOG_LEVEL:DEBUG}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
