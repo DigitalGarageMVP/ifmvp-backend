@@ -1,0 +1,40 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ifmvp-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: 20.214.197.54.nip.io
+    http:
+      paths:
+      - path: /auth
+        pathType: Prefix
+        backend:
+          service:
+            name: auth-service
+            port:
+              number: 80
+      - path: /email
+        pathType: Prefix
+        backend:
+          service:
+            name: email-service
+            port:
+              number: 80
+      - path: /mock
+        pathType: Prefix
+        backend:
+          service:
+            name: mock-service
+            port:
+              number: 80
+      - path: /stats
+        pathType: Prefix
+        backend:
+          service:
+            name: stats-service
+            port:
+              number: 80
