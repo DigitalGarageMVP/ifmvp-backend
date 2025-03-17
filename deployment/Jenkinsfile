@@ -67,8 +67,8 @@ podTemplate(
                     mkdir -p auth/src/test/resources email/src/test/resources
                     echo '${testContainersConfig}' > auth/src/test/resources/testcontainers.properties
                     echo '${testContainersConfig}' > email/src/test/resources/testcontainers.properties
-                    # echo '${testContainersConfig}' > mock/src/test/resources/testcontainers.properties
-                    # echo '${testContainersConfig}' > stats/src/test/resources/testcontainers.properties
+                    echo '${testContainersConfig}' > mock/src/test/resources/testcontainers.properties
+                    echo '${testContainersConfig}' > stats/src/test/resources/testcontainers.properties
                 """
 
                 // withSonarQubeEnv('SonarQube') {
@@ -122,9 +122,11 @@ podTemplate(
                             --build-arg BUILD_LIB_DIR="auth/build/libs" \
                             --build-arg ARTIFACTORY_FILE="auth-service.jar" \
                             -f deployment/container/Dockerfile \
-                            -t ${props.registry}/${props.image_org}/auth:${imageTag} .
+                            # -t ${props.registry}/${props.image_org}/auth:${imageTag} .
+                            -t ${props.registry}/${props.image_org}/auth:latest .
 
-                        podman push ${props.registry}/${props.image_org}/auth:${imageTag}
+                        # podman push ${props.registry}/${props.image_org}/auth:${imageTag}
+                        podman push ${props.registry}/${props.image_org}/auth:latest
                     """
 
                     // Email 서비스
@@ -133,9 +135,10 @@ podTemplate(
                             --build-arg BUILD_LIB_DIR="email/build/libs" \
                             --build-arg ARTIFACTORY_FILE="email-service.jar" \
                             -f deployment/container/Dockerfile \
-                            -t ${props.registry}/${props.image_org}/email:${imageTag} .
+                            -t ${props.registry}/${props.image_org}/email:latest . 
+                            #-t ${props.registry}/${props.image_org}/email:${imageTag} .
 
-                        podman push ${props.registry}/${props.image_org}/email:${imageTag}
+                        podman push ${props.registry}/${props.image_org}/email:latest
                     """
 
                     // Mock 서비스
