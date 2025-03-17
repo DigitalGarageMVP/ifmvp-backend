@@ -60,10 +60,7 @@ podTemplate(
             }
 
             container('gradle') {
-                def testContainersConfig = '''docker.client.strategy=org.testcontainers.dockerclient.UnixSocketClientProviderStrategy
-docker.host=unix:///run/podman/podman.sock
-ryuk.container.privileged=true
-testcontainers.reuse.enable=true'''
+                def testContainersConfig = "docker.client.strategy=org.testcontainers.dockerclient.UnixSocketClientProviderStrategy docker.host=unix:///run/podman/podman.sock ryuk.container.privileged=true testcontainers.reuse.enable=true"
 
                 sh """
                     # TestContainers 설정
