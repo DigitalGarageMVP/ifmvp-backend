@@ -3,7 +3,8 @@ def PIPELINE_ID = "${env.BUILD_NUMBER}"
 def getImageTag() {
     def dateFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmss')
     def currentDate = new Date()
-    return dateFormat.format(currentDate)
+    //return dateFormat.format(currentDate)
+    return 'latest'
 }
 
 podTemplate(
@@ -34,7 +35,7 @@ podTemplate(
         def imageTag = getImageTag()
         def manifest = "deploy.yaml"
         def namespace
-        def services = ['auth', 'email']
+        def services = ['auth', 'email', 'mock', 'stats']
 
         stage("Get Source") {
             checkout scm
@@ -67,19 +68,28 @@ testcontainers.reuse.enable=true'''
 
                 sh """
                     # TestContainers 설정
-                    mkdir -p auth/src/test/resources email/src/test/resources
+                    mkdir -p auth/src/test/resources email/src/test/resources mock/src/test/resources stats/src/test/resources
                     echo '${testContainersConfig}' > auth/src/test/resources/testcontainers.properties
                     echo '${testContainersConfig}' > email/src/test/resources/testcontainers.properties
                     echo '${testContainersConfig}' > mock/src/test/resources/testcontainers.properties
                     echo '${testContainersConfig}' > stats/src/test/resources/testcontainers.properties
-                """
 
+                    # 빌드 디렉토리 확인
+                    mkdir -p auth/build/libs email/build/libs mock/build/libs stats/build/libs
+                    
+                    # gradle 권한 설정
+                    chmod +x gradlew
+                    
+                    # 빌드 실행 - 테스트 제외
+                    ./gradlew :auth:build :email:build :mock:build :stats:build -x test
+                """
+                
                 // withSonarQubeEnv('SonarQube') {
                 //     sh """
                 //         chmod +x gradlew
 
                 //         # 빌드 실행
-                //         ./gradlew :auth:build :email:build -x test
+                //         ./gradlew :auth:build :email:build :mock:build :stats:build -x test
 
                 //         # Auth 서비스
                 //         ./gradlew :auth:test :auth:jacocoTestReport :auth:sonar \
@@ -93,6 +103,22 @@ testcontainers.reuse.enable=true'''
                 //         ./gradlew :email:test :email:jacocoTestReport :email:sonar \
                 //             -Dsonar.projectKey=email-email \
                 //             -Dsonar.projectName=email-email \
+                //             -Dsonar.java.binaries=build/classes/java/main \
+                //             -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml \
+                //             -Dsonar.exclusions=**/config/**,**/entity/**,**/dto/**,**/*Application.class,**/exception/**
+                            
+                //         # Mock 서비스
+                //         ./gradlew :mock:test :mock:jacocoTestReport :mock:sonar \
+                //             -Dsonar.projectKey=email-mock \
+                //             -Dsonar.projectName=email-mock \
+                //             -Dsonar.java.binaries=build/classes/java/main \
+                //             -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml \
+                //             -Dsonar.exclusions=**/config/**,**/entity/**,**/dto/**,**/*Application.class,**/exception/**
+                            
+                //         # Stats 서비스
+                //         ./gradlew :stats:test :stats:jacocoTestReport :stats:sonar \
+                //             -Dsonar.projectKey=email-stats \
+                //             -Dsonar.projectName=email-stats \
                 //             -Dsonar.java.binaries=build/classes/java/main \
                 //             -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml \
                 //             -Dsonar.exclusions=**/config/**,**/entity/**,**/dto/**,**/*Application.class,**/exception/**
@@ -119,7 +145,7 @@ testcontainers.reuse.enable=true'''
                 )]) {
                     sh "podman login ${props.registry} --username \$USERNAME --password \$PASSWORD"
 
-                    // Auth 서비스 특별 처리
+                    // Auth 서비스
                     sh """
                         podman build \
                             --build-arg BUILD_LIB_DIR="auth/build/libs" \
@@ -140,7 +166,7 @@ testcontainers.reuse.enable=true'''
 
                         podman push ${props.registry}/${props.image_org}/email:${imageTag}
                     """
-
+                    
                     // Mock 서비스
                     sh """
                         podman build \
@@ -151,8 +177,8 @@ testcontainers.reuse.enable=true'''
 
                         podman push ${props.registry}/${props.image_org}/mock:${imageTag}
                     """
-
-                    // Staticstic 서비스
+                    
+                    // Stats 서비스
                     sh """
                         podman build \
                             --build-arg BUILD_LIB_DIR="stats/build/libs" \
@@ -160,7 +186,7 @@ testcontainers.reuse.enable=true'''
                             -f deployment/container/Dockerfile \
                             -t ${props.registry}/${props.image_org}/stats:${imageTag} .
 
-                        podman push ${props.registry}/${props.image_org}/estatsmail:${imageTag}
+                        podman push ${props.registry}/${props.image_org}/stats:${imageTag}
                     """
                 }
             }

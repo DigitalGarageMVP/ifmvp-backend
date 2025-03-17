@@ -6,7 +6,7 @@ server:
 
 spring:
   application:
-    name: mock-delivery-service
+    name: mock-service
 
 azure:
   servicebus:
