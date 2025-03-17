@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: email-container
-        image: ifmvpcr.azurecr.io/ifmvp/email:1.0.0
+        image: ifmvpcr.azurecr.io/ifmvp/email:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8081

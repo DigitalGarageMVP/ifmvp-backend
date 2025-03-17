@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: auth-container
-        image: ifmvpcr.azurecr.io/ifmvp/auth:1.0.0
+        image: ifmvpcr.azurecr.io/ifmvp/auth:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
