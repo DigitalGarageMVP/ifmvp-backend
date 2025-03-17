@@ -172,7 +172,7 @@ testcontainers.reuse.enable=true'''
                         podman build \
                             --build-arg BUILD_LIB_DIR="mock/build/libs" \
                             --build-arg ARTIFACTORY_FILE="mock-service.jar" \
-                            -f deployment/Dockerfile \
+                            -f deployment/container/Dockerfile \
                             -t ${props.registry}/${props.image_org}/mock:${imageTag} .
 
                         podman push ${props.registry}/${props.image_org}/mock:${imageTag}
@@ -183,7 +183,7 @@ testcontainers.reuse.enable=true'''
                         podman build \
                             --build-arg BUILD_LIB_DIR="stats/build/libs" \
                             --build-arg ARTIFACTORY_FILE="stats-service.jar" \
-                            -f deployment/Dockerfile \
+                            -f deployment/container/Dockerfile \
                             -t ${props.registry}/${props.image_org}/stats:${imageTag} .
 
                         podman push ${props.registry}/${props.image_org}/stats:${imageTag}
