@@ -70,6 +70,8 @@ testcontainers.reuse.enable=true'''
                     mkdir -p auth/src/test/resources email/src/test/resources
                     echo '${testContainersConfig}' > auth/src/test/resources/testcontainers.properties
                     echo '${testContainersConfig}' > email/src/test/resources/testcontainers.properties
+                    echo '${testContainersConfig}' > mock/src/test/resources/testcontainers.properties
+                    echo '${testContainersConfig}' > stats/src/test/resources/testcontainers.properties
                 """
 
                 // withSonarQubeEnv('SonarQube') {
@@ -99,14 +101,14 @@ testcontainers.reuse.enable=true'''
             }
         }
 
-        stage('Quality Gate') {
-            timeout(time: 10, unit: 'MINUTES') {
-                def qg = waitForQualityGate()
-                if (qg.status != 'OK') {
-                    error "Pipeline aborted due to quality gate failure: ${qg.status}"
-                }
-            }
-        }
+        // stage('Quality Gate') {
+        //     timeout(time: 10, unit: 'MINUTES') {
+        //         def qg = waitForQualityGate()
+        //         if (qg.status != 'OK') {
+        //             error "Pipeline aborted due to quality gate failure: ${qg.status}"
+        //         }
+        //     }
+        // }
 
         stage('Build & Push Images') {
             container('podman') {
@@ -132,11 +134,33 @@ testcontainers.reuse.enable=true'''
                     sh """
                         podman build \
                             --build-arg BUILD_LIB_DIR="email/build/libs" \
-                            --build-arg ARTIFACTORY_FILE="email.jar" \
+                            --build-arg ARTIFACTORY_FILE="email-service.jar" \
                             -f deployment/container/Dockerfile \
                             -t ${props.registry}/${props.image_org}/email:${imageTag} .
 
                         podman push ${props.registry}/${props.image_org}/email:${imageTag}
+                    """
+
+                    // Mock 서비스
+                    sh """
+                        podman build \
+                            --build-arg BUILD_LIB_DIR="mock/build/libs" \
+                            --build-arg ARTIFACTORY_FILE="mock-service.jar" \
+                            -f deployment/container/Dockerfile \
+                            -t ${props.registry}/${props.image_org}/mock:${imageTag} .
+
+                        podman push ${props.registry}/${props.image_org}/mock:${imageTag}
+                    """
+
+                    // Staticstic 서비스
+                    sh """
+                        podman build \
+                            --build-arg BUILD_LIB_DIR="stats/build/libs" \
+                            --build-arg ARTIFACTORY_FILE="stats-service.jar" \
+                            -f deployment/container/Dockerfile \
+                            -t ${props.registry}/${props.image_org}/stats:${imageTag} .
+
+                        podman push ${props.registry}/${props.image_org}/estatsmail:${imageTag}
                     """
                 }
             }
@@ -163,6 +187,8 @@ testcontainers.reuse.enable=true'''
                     # 이미지 경로 환경변수 설정
                     export auth_image_path=${props.registry}/${props.image_org}/auth:${imageTag}
                     export email_image_path=${props.registry}/${props.image_org}/email:${imageTag}
+                    export mock_image_path=${props.registry}/${props.image_org}/mock:${imageTag}
+                    export stats_image_path=${props.registry}/${props.image_org}/stats:${imageTag}
 
                     # manifest 생성
                     envsubst < deployment/${manifest}.template > deployment/${manifest}
@@ -177,6 +203,8 @@ testcontainers.reuse.enable=true'''
                     echo "Waiting for deployments to be ready..."
                     kubectl -n ${namespace} wait --for=condition=available deployment/auth --timeout=300s
                     kubectl -n ${namespace} wait --for=condition=available deployment/email --timeout=300s
+                    kubectl -n ${namespace} wait --for=condition=available deployment/mock --timeout=300s
+                    kubectl -n ${namespace} wait --for=condition=available deployment/stats --timeout=300s
                 """
             }
         }
