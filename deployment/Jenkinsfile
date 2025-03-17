@@ -72,16 +72,16 @@ testcontainers.reuse.enable=true'''
                     echo '${testContainersConfig}' > email/src/test/resources/testcontainers.properties
                     echo '${testContainersConfig}' > mock/src/test/resources/testcontainers.properties
                     echo '${testContainersConfig}' > stats/src/test/resources/testcontainers.properties
-                """
 
-                # 빌드 디렉토리 확인
-                mkdir -p auth/build/libs email/build/libs mock/build/libs stats/build/libs
-                
-                # gradle 권한 설정
-                chmod +x gradlew
-                
-                # 빌드 실행 - 테스트 제외
-                ./gradlew :auth:build :email:build :mock:build :stats:build -x test
+                    # 빌드 디렉토리 확인
+                    mkdir -p auth/build/libs email/build/libs mock/build/libs stats/build/libs
+                    
+                    # gradle 권한 설정
+                    chmod +x gradlew
+                    
+                    # 빌드 실행 - 테스트 제외
+                    ./gradlew :auth:build :email:build :mock:build :stats:build -x test
+                """
                 
                 // withSonarQubeEnv('SonarQube') {
                 //     sh """
