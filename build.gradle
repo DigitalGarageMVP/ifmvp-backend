@@ -1,6 +1,6 @@
 plugins {
     id 'org.springframework.boot' version '3.4.0' apply false
-    id 'io.spring.dependency-management' version '1.1.4' apply false
+    //id 'io.spring.dependency-management' version '1.1.6' apply false
     id 'java'
 }
 
@@ -8,15 +8,15 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'org.springframework.boot'
     apply plugin: 'io.spring.dependency-management'
-    
+
     group = 'com.email'
     version = '0.0.1-SNAPSHOT'
     sourceCompatibility = '21'
-    
+
     repositories {
         mavenCentral()
     }
-    
+
     dependencies {
         // Spring Boot Starters
         implementation 'org.springframework.boot:spring-boot-starter'
@@ -25,33 +25,45 @@ subprojects {
         implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
         implementation 'org.springframework.boot:spring-boot-starter-security'
         implementation 'org.springframework.boot:spring-boot-starter-actuator'
-        
+
         // Database
         runtimeOnly 'org.postgresql:postgresql'
-        runtimeOnly 'org.mongodb:mongodb-driver-sync'
-        
-        // Swagger
+        //runtimeOnly 'org.mongodb:mongodb-driver-sync'
+
+        // Swagger - 버전 업데이트
         implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.4.0'
-        
+
         // JWT
         implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
         runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
         runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
-        
+
         // Lombok
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
-        
-        // Azure SDK
-        implementation 'com.azure:azure-storage-blob:12.22.1'
-        implementation 'com.azure:azure-messaging-servicebus:7.15.0'
-        
+
+        // Azure SDK - 버전 명시 및 업데이트
+        implementation 'com.azure:azure-storage-blob:12.25.1'
+        implementation 'com.azure:azure-messaging-servicebus:7.17.1'
+
         // Test
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
         testImplementation 'org.springframework.security:spring-security-test'
     }
-    
+
     test {
         useJUnitPlatform()
+    }
+
+    // 의존성 충돌 확인을 위한 태스크 추가
+    task checkDependencies {
+        doLast {
+            println "Checking for dependency conflicts..."
+            configurations.compileClasspath.resolvedConfiguration.lenientConfiguration.allModuleDependencies.each { dependency ->
+                dependency.children.each { child ->
+                    println "${dependency.name} -> ${child.name}:${child.moduleVersion}"
+                }
+            }
+        }
     }
 }

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: common-config
+data:
+  ALLOWED_ORIGINS: "http://localhost:8080,http://localhost:8081,http://localhost:8082,http://localhost:8083,http://20.214.193.48"
+  LOG_LEVEL: "DEBUG"
+  LOG_LEVEL_SECURITY: "INFO"
+  MONGODB_PORT: "27017"
+  MONGODB_DB: "emailviews"
+  POSTGRES_PORT: "5432"
+  POSTGRES_COMMAND_DB: "emaildb"
+  POSTGRES_DB: "authdb"
+  JPA_DDL_AUTO: "update"
+  JPA_SHOW_SQL: "true"
+  AZURE_CONTAINER_ATTACHMENTS: "email-attachments"
+  AZURE_QUEUE_EMAIL_EVENTS: "email-events"
+  AZURE_QUEUE_OPEN_EVENTS: "email-open-events"
+  AZURE_QUEUE_CLICK_EVENTS: "attachment-click-events"
+  MOCK_DELIVERY_URL: "http://mock-service:80"
