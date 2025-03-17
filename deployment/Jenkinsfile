@@ -122,7 +122,7 @@ testcontainers.reuse.enable=true'''
                         podman build \
                             --build-arg BUILD_LIB_DIR="auth/build/libs" \
                             --build-arg ARTIFACTORY_FILE="auth-service.jar" \
-                            -f deployment/Dockerfile \
+                            -f deployment/container/Dockerfile \
                             -t ${props.registry}/${props.image_org}/auth:${imageTag} .
 
                         podman push ${props.registry}/${props.image_org}/auth:${imageTag}
@@ -133,7 +133,7 @@ testcontainers.reuse.enable=true'''
                         podman build \
                             --build-arg BUILD_LIB_DIR="email/build/libs" \
                             --build-arg ARTIFACTORY_FILE="email.jar" \
-                            -f deployment/Dockerfile \
+                            -f deployment/container/Dockerfile \
                             -t ${props.registry}/${props.image_org}/email:${imageTag} .
 
                         podman push ${props.registry}/${props.image_org}/email:${imageTag}
