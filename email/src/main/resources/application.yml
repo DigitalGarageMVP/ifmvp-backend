@@ -8,10 +8,9 @@ spring:
   application:
     name: email-service
   datasource:
-    command:
-      url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_COMMAND_DB:emaildb}
-      username: ${POSTGRES_USER:postgres}
-      password: ${POSTGRES_PASSWORD:postgres}
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_COMMAND_DB:emaildb}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
     query:
       url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_QUERY_DB:emailviews}
       username: ${POSTGRES_USER:postgres}
