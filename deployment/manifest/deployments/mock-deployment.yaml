@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: mock-container
-        image: ifmvpcr.azurecr.io/ifmvp/mock:1.0.0
+        image: ifmvpcr.azurecr.io/ifmvp/mock:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8082
