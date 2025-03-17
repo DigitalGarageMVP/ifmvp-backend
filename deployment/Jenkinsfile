@@ -3,7 +3,8 @@ def PIPELINE_ID = "${env.BUILD_NUMBER}"
 def getImageTag() {
     def dateFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmss')
     def currentDate = new Date()
-    return dateFormat.format(currentDate)
+    //return dateFormat.format(currentDate)
+    return 'latest'
 }
 
 podTemplate(
