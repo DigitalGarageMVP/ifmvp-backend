@@ -34,8 +34,6 @@ spec:
             name: mock-config
         - secretRef:
             name: common-secret
-        - configMapRef:
-            name: auth-config
         startupProbe:
           httpGet:
             path: /actuator/health
