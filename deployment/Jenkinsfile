@@ -70,8 +70,8 @@ testcontainers.reuse.enable=true'''
                     mkdir -p auth/src/test/resources email/src/test/resources
                     echo '${testContainersConfig}' > auth/src/test/resources/testcontainers.properties
                     echo '${testContainersConfig}' > email/src/test/resources/testcontainers.properties
-                    echo '${testContainersConfig}' > mock/src/test/resources/testcontainers.properties
-                    echo '${testContainersConfig}' > stats/src/test/resources/testcontainers.properties
+                    # echo '${testContainersConfig}' > mock/src/test/resources/testcontainers.properties
+                    # echo '${testContainersConfig}' > stats/src/test/resources/testcontainers.properties
                 """
 
                 // withSonarQubeEnv('SonarQube') {
