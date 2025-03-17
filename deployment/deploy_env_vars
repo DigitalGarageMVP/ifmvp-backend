@@ -1,0 +1,27 @@
+# Team Settings
+teamid=ifmvp
+root_project=email-service
+namespace=if-ifmvp-ns
+
+# Container Registry Settings
+registry=ifmvpcr.azurecr.io
+image_org=ifmvp
+
+# Application Settings
+replicas=2
+allowed_origins=http://20.214.197.54
+
+# Security Settings
+jwt_secret_key=yourSecretKeyHereForJwtTokenSigning
+postgres_user=postgres
+postgres_password=Passw0rd
+mongodb_user=mongo
+mongodb_password=Passw0rd
+azure_servicebus_connection_string=Endpoint=sb://sb-if-ifmvp.servicebus.windows.net/;SharedAccessKeyName=if-backend;SharedAccessKey=IicFGjdVwp8YlkSCKYgRyOZ7cubKSvHJG+ASbH5ah9M=
+azure_storage_connection_string=DefaultEndpointsProtocol=https;AccountName=ifmvp;AccountKey=0hBdcnBFzZwXRPjGeF8C8U/cbh4X4uK06IWCUHtTeTy4q64t8LlpXi9D8Xcxp5enTpm6aVg8XCau+AStexwJww==;EndpointSuffix=core.windows.net
+
+# Resource Settings
+resources_requests_cpu=256m
+resources_requests_memory=256Mi
+resources_limits_cpu=1024m
+resources_limits_memory=1024Mi
