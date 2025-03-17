@@ -110,7 +110,7 @@ podTemplate(
         stage('Build & Push Images') {
             container('podman') {
                 withCredentials([usernamePassword(
-                    credentialsId: 'acr-credentials',
+                    credentialsId: 'azure-credentials',
                     usernameVariable: 'USERNAME',
                     passwordVariable: 'PASSWORD'
                 )]) {
