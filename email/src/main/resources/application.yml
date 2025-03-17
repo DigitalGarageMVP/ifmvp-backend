@@ -13,9 +13,9 @@ spring:
       username: ${POSTGRES_USER:postgres}
       password: ${POSTGRES_PASSWORD:postgres}
     query:
-      url: jdbc:mongodb://${MONGODB_HOST:localhost}:${MONGODB_PORT:27017}/${MONGODB_DB:emailviews}
-      username: ${MONGODB_USER:mongo}
-      password: ${MONGODB_PASSWORD:mongo}
+      url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_QUERY_DB:emailviews}
+      username: ${POSTGRES_USER:postgres}
+      password: ${POSTGRES_PASSWORD:postgres}
   jpa:
     hibernate:
       ddl-auto: ${JPA_DDL_AUTO:update}
