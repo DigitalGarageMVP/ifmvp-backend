@@ -6,4 +6,4 @@ data:
   SERVER_PORT: "8080"
   JWT_ACCESS_TOKEN_VALIDITY: "3600000"
   JWT_REFRESH_TOKEN_VALIDITY: "86400000"
-  SPRING_DATASOURCE_URL: jdbc:postgresql://auth-service:5432/statsdb
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-ifmvp-auth-postgresql:5432/statsdb

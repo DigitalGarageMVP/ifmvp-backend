@@ -4,4 +4,4 @@ metadata:
   name: stats-config
 data:
   SERVER_PORT: "8083"
-  SPRING_DATASOURCE_URL: jdbc:postgresql://stats-service:5432/statsdb
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-ifmvp-stats-postgresql:5432/statsdb
