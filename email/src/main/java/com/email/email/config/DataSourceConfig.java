@@ -23,7 +23,7 @@ public class DataSourceConfig {
     */
    @Primary
    @Bean(name = "commandDataSource")
-   @ConfigurationProperties(prefix = "spring.datasource")
+   @ConfigurationProperties(prefix = "spring.datasource.command")
    public DataSource commandDataSource() {
        return DataSourceBuilder.create().build();
    }
