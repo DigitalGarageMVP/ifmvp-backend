@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -33,9 +35,22 @@ public class TokenProvider {
     private final SecretKey key;
     private final JwtParser jwtParser;
     private final Set<String> blacklistedTokens = Collections.newSetFromMap(new ConcurrentHashMap<>());
-    
+
     public TokenProvider(@Value("${jwt.secret-key}") String secretKey) {
-        this.key = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), SignatureAlgorithm.HS256.getJcaName());
+        // 입력된 비밀 키가 최소 길이 요구사항을 충족하는지 확인
+        byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
+
+        // 키가 32바이트(256비트) 미만인 경우 해시 함수를 사용하여 확장
+        if (keyBytes.length < 32) {
+            try {
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                keyBytes = digest.digest(keyBytes);
+            } catch (NoSuchAlgorithmException e) {
+                throw new RuntimeException("SHA-256 알고리즘을 찾을 수 없습니다.", e);
+            }
+        }
+
+        this.key = new SecretKeySpec(keyBytes, SignatureAlgorithm.HS256.getJcaName());
         this.jwtParser = Jwts.parserBuilder().setSigningKey(key).build();
     }
     

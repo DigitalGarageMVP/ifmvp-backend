@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: stats-container
-        image: ifmvpcr.azurecr.io/ifmvp/stats:1.0.0
+        image: ifmvpcr.azurecr.io/ifmvp/stats:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8083

@@ -8,14 +8,22 @@ spring:
   application:
     name: email-service
   datasource:
-    command:
-      jdbc-url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_COMMAND_DB:emaildb}
-      username: ${POSTGRES_USER:postgres}
-      password: ${POSTGRES_PASSWORD:postgres}
-    query:
-      jdbc-url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_QUERY_DB:emailviews}
-      username: ${POSTGRES_USER:postgres}
-      password: ${POSTGRES_PASSWORD:postgres}
+    url: jdbc:postgresql://${POSTGRES_HOST:20.249.204.253}:${POSTGRES_PORT:5432}/${POSTGRES_COMMAND_DB:emaildb}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:Passw0rd}
+    driver-class-name: org.postgresql.Driver
+  # 다중 데이터소스 설정
+  datasources:
+   command:
+    jdbcUrl: jdbc:postgresql://${POSTGRES_HOST:20.249.204.253}:${POSTGRES_PORT:5432}/${POSTGRES_COMMAND_DB:emaildb}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:Passw0rd}
+    driver-class-name: org.postgresql.Driver
+   query:
+     jdbcUrl: jdbc:postgresql://${POSTGRES_HOST:20.249.204.253}:${POSTGRES_PORT:5432}/${POSTGRES_QUERY_DB:emailviews}
+     username: ${POSTGRES_USER:postgres}
+     password: ${POSTGRES_PASSWORD:Passw0rd}
+     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: ${JPA_DDL_AUTO:update}
@@ -27,11 +35,11 @@ spring:
 
 azure:
   storage:
-    connection-string: ${AZURE_STORAGE_CONNECTION_STRING}
+    connection-string: ${AZURE_STORAGE_CONNECTION_STRING:DefaultEndpointsProtocol=https;AccountName=ifmvp;AccountKey=0hBdcnBFzZwXRPjGeF8C8U/cbh4X4uK06IWCUHtTeTy4q64t8LlpXi9D8Xcxp5enTpm6aVg8XCau+AStexwJww==;EndpointSuffix=core.windows.net}
     container:
       attachments: ${AZURE_CONTAINER_ATTACHMENTS:email-attachments}
   servicebus:
-    connection-string: ${AZURE_SERVICEBUS_CONNECTION_STRING}
+    connection-string: ${AZURE_SERVICEBUS_CONNECTION_STRING:Endpoint=sb://sb-if-ifmvp.servicebus.windows.net/;SharedAccessKeyName=if-backend;SharedAccessKey=IicFGjdVwp8YlkSCKYgRyOZ7cubKSvHJG+ASbH5ah9M=}
     queue:
       email-events: ${AZURE_QUEUE_EMAIL_EVENTS:email-events}
 

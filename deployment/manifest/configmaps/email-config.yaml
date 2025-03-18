@@ -4,5 +4,5 @@ metadata:
   name: email-config
 data:
   SERVER_PORT: "8081"
-  SPRING_DATASOURCE_COMMAND_JDBC-URL: jdbc:postgresql://postgres-ifmvp-email-postgresql:5432/emaildb
-  SPRING_DATASOURCE_QUERY_JDBC-URL: jdbc:postgresql://postgres-ifmvp-email-postgresql:5432/emailviews
+  SPRING_DATASOURCE_COMMAND_JDBC_URL: jdbc:postgresql://postgres-ifmvp-email-postgresql:5432/emaildb
+  SPRING_DATASOURCE_QUERY_JDBC_URL: jdbc:postgresql://postgres-ifmvp-email-postgresql:5432/emailviews
