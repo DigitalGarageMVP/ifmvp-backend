@@ -22,7 +22,7 @@ public class MockDeliveryClient {
 
     public MockDeliveryClient(
             RestTemplate restTemplate,
-            @Value("${mock.delivery.service.url:http://localhost:8082}") String mockServiceUrl) {
+            @Value("${mock.delivery.service-url:http://localhost:8082}") String mockServiceUrl) {
         this.restTemplate = restTemplate;
         this.mockServiceUrl = mockServiceUrl;
         logger.info("MockDeliveryClient 초기화: URL={}", mockServiceUrl);
