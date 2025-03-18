@@ -32,12 +32,19 @@ jobs:
         run: |
           ./gradlew :auth:build :email:build :mock:build :stats:build -x test
       
-      - name: Run Tests and Generate JaCoCo Reports
+      - name: Run Tests
         run: |
-          ./gradlew :auth:test :auth:jacocoTestReport
-          ./gradlew :email:test :email:jacocoTestReport
-          ./gradlew :mock:test :mock:jacocoTestReport
-          ./gradlew :stats:test :stats:jacocoTestReport
+          ./gradlew :auth:test
+          ./gradlew :email:test
+          ./gradlew :mock:test
+          ./gradlew :stats:test
+      
+      # - name: Run Tests and Generate JaCoCo Reports
+      #   run: |
+      #     ./gradlew :auth:test :auth:jacocoTestReport
+      #     ./gradlew :email:test :email:jacocoTestReport
+      #     ./gradlew :mock:test :mock:jacocoTestReport
+      #     ./gradlew :stats:test :stats:jacocoTestReport
       
       # - name: SonarQube Analysis - Auth Service
       #   uses: sonarsource/sonarqube-scan-action@master
@@ -140,53 +147,65 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       imageTag: ${{ steps.set-image-tag.outputs.imageTag }}
+      registry: ${{ steps.load-env.outputs.registry }}
+      image_org: ${{ steps.load-env.outputs.image_org }}      
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Debug File Location
+        run: |
+          echo "DEPLOY_DIR: ${{ env.DEPLOY_DIR }}"
+          ls -la ${{ env.DEPLOY_DIR }}/
+          find ${{ env.DEPLOY_DIR }} -name "deploy_env_vars" -type f
       
       - name: Load environment variables
+        id: load-env
         run: |
           if [ -f "${{ env.DEPLOY_DIR }}/deploy_env_vars" ]; then
             while IFS= read -r line || [ -n "$line" ]; do
-              # Skip comment lines
               [[ "$line" =~ ^#.*$ ]] && continue
-              # Skip empty lines
               [ -z "$line" ] && continue
-              # Export each line as environment variable
-              export "$line"
+              echo "$line" >> $GITHUB_ENV
+              var_name=$(echo "$line" | cut -d= -f1)
+              var_value=$(echo "$line" | cut -d= -f2-)
+              if [[ "$var_name" == "registry" || "$var_name" == "image_org" || "$var_name" == "teamid" ]]; then
+                echo "$var_name=$var_value" >> $GITHUB_OUTPUT
+              fi
               echo "Loaded: $line"
             done < "${{ env.DEPLOY_DIR }}/deploy_env_vars"
           else
             echo "Warning: deploy_env_vars file not found"
+            exit 1
           fi
-      
+        
       - name: Download Auth Service Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: auth-service-artifact
           path: auth/build/libs
       
       - name: Download Email Service Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: email-service-artifact
           path: email/build/libs
       
       - name: Download Mock Service Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: mock-service-artifact
           path: mock/build/libs
       
       - name: Download Stats Service Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: stats-service-artifact
           path: stats/build/libs
       
       - name: Download Deployment Files
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: deployment-files
           path: ${{ env.DEPLOY_DIR }}
@@ -198,8 +217,15 @@ jobs:
           echo "imageTag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
           echo "Image tag: ${IMAGE_TAG}"
       
-      - name: Log in to ACR
-        uses: docker/login-action@v2
+      - name: Debug environment variables
+        run: |
+          echo "DEPLOY_DIR: ${{ env.DEPLOY_DIR }}"
+          echo "registry: ${{ env.registry }}"
+          echo "image_org: ${{ env.image_org }}"
+          echo "teamid: ${{ env.teamid }}"
+      
+      - name: Login to Azure Container Registry
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.registry }}
           username: ${{ secrets.ACR_USERNAME }}
@@ -259,25 +285,29 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Download Deployment Files
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: deployment-files
           path: ${{ env.DEPLOY_DIR }}
       
       - name: Load environment variables
+        id: load-env
         run: |
           if [ -f "${{ env.DEPLOY_DIR }}/deploy_env_vars" ]; then
             while IFS= read -r line || [ -n "$line" ]; do
-              # Skip comment lines
               [[ "$line" =~ ^#.*$ ]] && continue
-              # Skip empty lines
               [ -z "$line" ] && continue
-              # Export each line as environment variable
-              export "$line"
+              echo "$line" >> $GITHUB_ENV
+              var_name=$(echo "$line" | cut -d= -f1)
+              var_value=$(echo "$line" | cut -d= -f2-)
+              if [[ "$var_name" == "registry" || "$var_name" == "image_org" || "$var_name" == "teamid" ]]; then
+                echo "$var_name=$var_value" >> $GITHUB_OUTPUT
+              fi
               echo "Loaded: $line"
             done < "${{ env.DEPLOY_DIR }}/deploy_env_vars"
           else
             echo "Warning: deploy_env_vars file not found"
+            exit 1
           fi
       
       - name: Set up kubectl
