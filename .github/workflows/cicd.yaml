@@ -32,12 +32,19 @@ jobs:
         run: |
           ./gradlew :auth:build :email:build :mock:build :stats:build -x test
       
-      - name: Run Tests and Generate JaCoCo Reports
+      - name: Run Tests
         run: |
-          ./gradlew :auth:test :auth:jacocoTestReport
-          ./gradlew :email:test :email:jacocoTestReport
-          ./gradlew :mock:test :mock:jacocoTestReport
-          ./gradlew :stats:test :stats:jacocoTestReport
+          ./gradlew :auth:test
+          ./gradlew :email:test
+          ./gradlew :mock:test
+          ./gradlew :stats:test
+      
+      # - name: Run Tests and Generate JaCoCo Reports
+      #   run: |
+      #     ./gradlew :auth:test :auth:jacocoTestReport
+      #     ./gradlew :email:test :email:jacocoTestReport
+      #     ./gradlew :mock:test :mock:jacocoTestReport
+      #     ./gradlew :stats:test :stats:jacocoTestReport
       
       # - name: SonarQube Analysis - Auth Service
       #   uses: sonarsource/sonarqube-scan-action@master
