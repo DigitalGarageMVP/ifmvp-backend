@@ -1,85 +1,137 @@
-name: Email Service CI/CD Pipeline
+name: Backend CI/CD Pipeline
 
 on:
   push:
     branches:
       - k8s
-    paths-ignore:
-      - '**.md'
-      - '.github/**'
-      - '!.github/workflows/cicd.yaml'
+  workflow_dispatch:
+
+env:
+  DEPLOY_DIR: deployment
 
 jobs:
   build:
     name: Build and Test
     runs-on: ubuntu-latest
-    outputs:
-      timestamp: ${{ steps.set-timestamp.outputs.timestamp }}
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Set timestamp for image tag
-        id: set-timestamp
-        run: echo "timestamp=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
-
+      
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
           java-version: '21'
-          distribution: 'adopt'
-          cache: 'gradle'
-
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
-
+          distribution: 'temurin'
+          cache: gradle
+      
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      
       - name: Build with Gradle
         run: |
-          chmod +x gradlew
-          ./gradlew :auth:build :email:build -x test
-
-      - name: Test with Gradle
+          ./gradlew :auth:build :email:build :mock:build :stats:build -x test
+      
+      - name: Run Tests and Generate JaCoCo Reports
         run: |
           ./gradlew :auth:test :auth:jacocoTestReport
           ./gradlew :email:test :email:jacocoTestReport
-
-      - name: SonarQube Analysis
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: |
-          ./gradlew :auth:sonar \
-            -Dsonar.projectKey=email-auth \
-            -Dsonar.projectName=email-auth \
-            -Dsonar.host.url=$SONAR_HOST_URL \
-            -Dsonar.token=$SONAR_TOKEN \
-            -Dsonar.java.binaries=build/classes/java/main \
-            -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml \
-            -Dsonar.exclusions=**/config/**,**/entity/**,**/dto/**,**/*Application.class,**/exception/**
-          
-          ./gradlew :email:sonar \
-            -Dsonar.projectKey=email-email \
-            -Dsonar.projectName=email-email \
-            -Dsonar.host.url=$SONAR_HOST_URL \
-            -Dsonar.token=$SONAR_TOKEN \
-            -Dsonar.java.binaries=build/classes/java/main \
-            -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml \
-            -Dsonar.exclusions=**/config/**,**/entity/**,**/dto/**,**/*Application.class,**/exception/**
-
-      - name: Upload Auth Build Artifacts
+          ./gradlew :mock:test :mock:jacocoTestReport
+          ./gradlew :stats:test :stats:jacocoTestReport
+      
+      # - name: SonarQube Analysis - Auth Service
+      #   uses: sonarsource/sonarqube-scan-action@master
+      #   env:
+      #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #   with:
+      #     args: >
+      #       -Dsonar.projectKey=email-auth
+      #       -Dsonar.projectName=email-auth
+      #       -Dsonar.sources=auth/src/main
+      #       -Dsonar.tests=auth/src/test
+      #       -Dsonar.java.binaries=auth/build/classes/java/main
+      #       -Dsonar.coverage.jacoco.xmlReportPaths=auth/build/reports/jacoco/test/jacocoTestReport.xml
+      #       -Dsonar.exclusions=**/config/**,**/entity/**,**/dto/**,**/*Application.class,**/exception/**
+      
+      # - name: SonarQube Analysis - Email Service
+      #   uses: sonarsource/sonarqube-scan-action@master
+      #   env:
+      #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #   with:
+      #     args: >
+      #       -Dsonar.projectKey=email-email
+      #       -Dsonar.projectName=email-email
+      #       -Dsonar.sources=email/src/main
+      #       -Dsonar.tests=email/src/test
+      #       -Dsonar.java.binaries=email/build/classes/java/main
+      #       -Dsonar.coverage.jacoco.xmlReportPaths=email/build/reports/jacoco/test/jacocoTestReport.xml
+      #       -Dsonar.exclusions=**/config/**,**/entity/**,**/dto/**,**/*Application.class,**/exception/**
+      
+      # - name: SonarQube Analysis - Mock Service
+      #   uses: sonarsource/sonarqube-scan-action@master
+      #   env:
+      #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #   with:
+      #     args: >
+      #       -Dsonar.projectKey=email-mock
+      #       -Dsonar.projectName=email-mock
+      #       -Dsonar.sources=mock/src/main
+      #       -Dsonar.tests=mock/src/test
+      #       -Dsonar.java.binaries=mock/build/classes/java/main
+      #       -Dsonar.coverage.jacoco.xmlReportPaths=mock/build/reports/jacoco/test/jacocoTestReport.xml
+      #       -Dsonar.exclusions=**/config/**,**/entity/**,**/dto/**,**/*Application.class,**/exception/**
+      
+      # - name: SonarQube Analysis - Stats Service
+      #   uses: sonarsource/sonarqube-scan-action@master
+      #   env:
+      #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #   with:
+      #     args: >
+      #       -Dsonar.projectKey=email-stats
+      #       -Dsonar.projectName=email-stats
+      #       -Dsonar.sources=stats/src/main
+      #       -Dsonar.tests=stats/src/test
+      #       -Dsonar.java.binaries=stats/build/classes/java/main
+      #       -Dsonar.coverage.jacoco.xmlReportPaths=stats/build/reports/jacoco/test/jacocoTestReport.xml
+      #       -Dsonar.exclusions=**/config/**,**/entity/**,**/dto/**,**/*Application.class,**/exception/**
+      
+      - name: Upload Auth Service Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: auth-artifacts
+          name: auth-service-artifact
           path: auth/build/libs/auth-service.jar
           retention-days: 1
-
-      - name: Upload Email Build Artifacts
+      
+      - name: Upload Email Service Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: email-artifacts
-          path: email/build/libs/email.jar
+          name: email-service-artifact
+          path: email/build/libs/email-service.jar
+          retention-days: 1
+      
+      - name: Upload Mock Service Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mock-service-artifact
+          path: mock/build/libs/mock-service.jar
+          retention-days: 1
+      
+      - name: Upload Stats Service Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: stats-service-artifact
+          path: stats/build/libs/stats-service.jar
+          retention-days: 1
+      
+      - name: Upload Deployment Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-files
+          path: ${{ env.DEPLOY_DIR }}
           retention-days: 1
 
   release:
@@ -87,140 +139,207 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     outputs:
-      image_tag: ${{ needs.build.outputs.timestamp }}
-
+      imageTag: ${{ steps.set-image-tag.outputs.imageTag }}
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Download Auth Artifacts
-        uses: actions/download-artifact@v4
+      
+      - name: Load environment variables
+        run: |
+          if [ -f "${{ env.DEPLOY_DIR }}/deploy_env_vars" ]; then
+            while IFS= read -r line || [ -n "$line" ]; do
+              # Skip comment lines
+              [[ "$line" =~ ^#.*$ ]] && continue
+              # Skip empty lines
+              [ -z "$line" ] && continue
+              # Export each line as environment variable
+              export "$line"
+              echo "Loaded: $line"
+            done < "${{ env.DEPLOY_DIR }}/deploy_env_vars"
+          else
+            echo "Warning: deploy_env_vars file not found"
+          fi
+      
+      - name: Download Auth Service Artifact
+        uses: actions/download-artifact@v3
         with:
-          name: auth-artifacts
-          path: auth/build/libs/
-
-      - name: Download Email Artifacts
-        uses: actions/download-artifact@v4
+          name: auth-service-artifact
+          path: auth/build/libs
+      
+      - name: Download Email Service Artifact
+        uses: actions/download-artifact@v3
         with:
-          name: email-artifacts
-          path: email/build/libs/
-
-      - name: Login to Azure Container Registry
-        uses: docker/login-action@v3
+          name: email-service-artifact
+          path: email/build/libs
+      
+      - name: Download Mock Service Artifact
+        uses: actions/download-artifact@v3
         with:
-          registry: ${{ secrets.ACR_USERNAME }}.azurecr.io
+          name: mock-service-artifact
+          path: mock/build/libs
+      
+      - name: Download Stats Service Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: stats-service-artifact
+          path: stats/build/libs
+      
+      - name: Download Deployment Files
+        uses: actions/download-artifact@v3
+        with:
+          name: deployment-files
+          path: ${{ env.DEPLOY_DIR }}
+      
+      - name: Set Image Tag
+        id: set-image-tag
+        run: |
+          IMAGE_TAG=$(date +'%Y%m%d%H%M%S')
+          echo "imageTag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "Image tag: ${IMAGE_TAG}"
+      
+      - name: Log in to ACR
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.registry }}
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
-
-      - name: Read Configuration
-        id: config
-        run: |
-          # Parse configuration from deployment/deploy_env_vars
-          registry=$(grep "^registry=" deployment/deploy_env_vars | cut -d '=' -f 2)
-          image_org=$(grep "^image_org=" deployment/deploy_env_vars | cut -d '=' -f 2)
-          echo "registry=$registry" >> $GITHUB_ENV
-          echo "image_org=$image_org" >> $GITHUB_ENV
-
-      - name: Build and Push Auth Image
+      
+      - name: Build and Push Auth Service Image
         uses: docker/build-push-action@v4
         with:
           context: .
+          file: ${{ env.DEPLOY_DIR }}/container/Dockerfile
           push: true
-          file: deployment/Dockerfile
+          tags: ${{ env.registry }}/${{ env.image_org }}/auth:${{ steps.set-image-tag.outputs.imageTag }}
           build-args: |
             BUILD_LIB_DIR=auth/build/libs
             ARTIFACTORY_FILE=auth-service.jar
-          tags: ${{ env.registry }}/${{ env.image_org }}/auth:${{ needs.build.outputs.timestamp }}
-
-      - name: Build and Push Email Image
+      
+      - name: Build and Push Email Service Image
         uses: docker/build-push-action@v4
         with:
           context: .
+          file: ${{ env.DEPLOY_DIR }}/container/Dockerfile
           push: true
-          file: deployment/Dockerfile
+          tags: ${{ env.registry }}/${{ env.image_org }}/email:${{ steps.set-image-tag.outputs.imageTag }}
           build-args: |
             BUILD_LIB_DIR=email/build/libs
-            ARTIFACTORY_FILE=email.jar
-          tags: ${{ env.registry }}/${{ env.image_org }}/email:${{ needs.build.outputs.timestamp }}
+            ARTIFACTORY_FILE=email-service.jar
+      
+      - name: Build and Push Mock Service Image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ${{ env.DEPLOY_DIR }}/container/Dockerfile
+          push: true
+          tags: ${{ env.registry }}/${{ env.image_org }}/mock:${{ steps.set-image-tag.outputs.imageTag }}
+          build-args: |
+            BUILD_LIB_DIR=mock/build/libs
+            ARTIFACTORY_FILE=mock-service.jar
+      
+      - name: Build and Push Stats Service Image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ${{ env.DEPLOY_DIR }}/container/Dockerfile
+          push: true
+          tags: ${{ env.registry }}/${{ env.image_org }}/stats:${{ steps.set-image-tag.outputs.imageTag }}
+          build-args: |
+            BUILD_LIB_DIR=stats/build/libs
+            ARTIFACTORY_FILE=stats-service.jar
 
   deploy:
     name: Deploy to Kubernetes
-    needs: [build, release]
+    needs: release
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Azure Login
+      
+      - name: Download Deployment Files
+        uses: actions/download-artifact@v3
+        with:
+          name: deployment-files
+          path: ${{ env.DEPLOY_DIR }}
+      
+      - name: Load environment variables
+        run: |
+          if [ -f "${{ env.DEPLOY_DIR }}/deploy_env_vars" ]; then
+            while IFS= read -r line || [ -n "$line" ]; do
+              # Skip comment lines
+              [[ "$line" =~ ^#.*$ ]] && continue
+              # Skip empty lines
+              [ -z "$line" ] && continue
+              # Export each line as environment variable
+              export "$line"
+              echo "Loaded: $line"
+            done < "${{ env.DEPLOY_DIR }}/deploy_env_vars"
+          else
+            echo "Warning: deploy_env_vars file not found"
+          fi
+      
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+      
+      - name: Azure login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Set Kubernetes Context
-        uses: azure/aks-set-context@v3
-        with:
-          resource-group: ictcoe-edu
-          cluster-name: ifmvp-aks
-
-      - name: Create Namespace if not exists
+      
+      - name: Set AKS Context
         run: |
-          kubectl create namespace if-ifmvp-ns --dry-run=client -o yaml | kubectl apply -f -
-
-      - name: Read Configuration
-        id: config
+          az aks get-credentials --resource-group ictcoe-edu --name ${teamid}-aks --overwrite-existing
+          kubectl create namespace ${namespace} --dry-run=client -o yaml | kubectl apply -f -
+      
+      - name: Generate manifest file
         run: |
-          # Parse configuration from deployment/deploy_env_vars
-          while IFS= read -r line || [[ -n "$line" ]]; do
-            # Skip comments
-            [[ $line =~ ^#.* ]] && continue
-            [[ -z "$line" ]] && continue
+          export namespace=${namespace}
+          export allowed_origins=${allowed_origins}
+          export jwt_secret_key=${jwt_secret_key}
+          export postgres_user=${postgres_user}
+          export postgres_password=${postgres_password}
+          export mongodb_user=${mongodb_user}
+          export mongodb_password=${mongodb_password}
+          export azure_servicebus_connection_string=${azure_servicebus_connection_string}
+          export azure_storage_connection_string=${azure_storage_connection_string}
+          export replicas=${replicas}
+          export resources_requests_cpu=${resources_requests_cpu}
+          export resources_requests_memory=${resources_requests_memory}
+          export resources_limits_cpu=${resources_limits_cpu}
+          export resources_limits_memory=${resources_limits_memory}
           
-            # Extract key-value pairs
-            key=$(echo "$line" | cut -d '=' -f 1)
-            value=$(echo "$line" | cut -d '=' -f 2-)
+          # Set image tags from previous job
+          export auth_image_path=${registry}/${image_org}/auth:${{ needs.release.outputs.imageTag }}
+          export email_image_path=${registry}/${image_org}/email:${{ needs.release.outputs.imageTag }}
+          export mock_image_path=${registry}/${image_org}/mock:${{ needs.release.outputs.imageTag }}
+          export stats_image_path=${registry}/${image_org}/stats:${{ needs.release.outputs.imageTag }}
           
-            # Export as environment variables
-            echo "$key=$value" >> $GITHUB_ENV
-          done < deployment/deploy_env_vars
-
-      - name: Set Image Tag Environment Variable
-        run: |
-          echo "image_tag=${{ needs.build.outputs.timestamp }}" >> $GITHUB_ENV
-
-      - name: Generate Kubernetes Manifests
-        run: |
-          export namespace=$namespace
-          export allowed_origins=$allowed_origins
-          export jwt_secret_key=$jwt_secret_key
-          export postgres_user=$postgres_user
-          export postgres_password=$postgres_password
-          export mongodb_user=$mongodb_user
-          export mongodb_password=$mongodb_password
-          export azure_servicebus_connection_string=$azure_servicebus_connection_string
-          export azure_storage_connection_string=$azure_storage_connection_string
-          export replicas=$replicas
-          export resources_requests_cpu=$resources_requests_cpu
-          export resources_requests_memory=$resources_requests_memory
-          export resources_limits_cpu=$resources_limits_cpu
-          export resources_limits_memory=$resources_limits_memory
+          # Generate manifest using template
+          envsubst < ${{ env.DEPLOY_DIR }}/deploy.yaml.template > ${{ env.DEPLOY_DIR }}/deploy.yaml
           
-          # Set image paths with timestamp tag
-          export auth_image_path=${registry}/${image_org}/auth:${image_tag}
-          export email_image_path=${registry}/${image_org}/email:${image_tag}
-          
-          # Generate manifest from template
-          envsubst < deployment/deploy.yaml.template > deployment/deploy.yaml
-          
-          # Output generated manifest for debugging
-          echo "Generated Kubernetes manifest:"
-          cat deployment/deploy.yaml
-
-      - name: Apply Kubernetes Manifests
+          # Print generated manifest for debugging
+          echo "Generated manifest file:"
+          cat ${{ env.DEPLOY_DIR }}/deploy.yaml
+      
+      - name: Apply Kubernetes manifest
         run: |
-          kubectl apply -f deployment/deploy.yaml
-
-      - name: Wait for Deployments to be Available
-        run: |
-          kubectl -n $namespace wait --for=condition=available deployment/auth --timeout=300s
-          kubectl -n $namespace wait --for=condition=available deployment/email --timeout=300s
+          kubectl apply -f ${{ env.DEPLOY_DIR }}/deploy.yaml
+          
+          echo "Waiting for deployments to be ready..."
+          kubectl -n ${namespace} wait --for=condition=available deployment/auth --timeout=300s
+          kubectl -n ${namespace} wait --for=condition=available deployment/email --timeout=300s
+          kubectl -n ${namespace} wait --for=condition=available deployment/mock --timeout=300s
+          kubectl -n ${namespace} wait --for=condition=available deployment/stats --timeout=300s
+          
+          # Print deployment status
+          echo "Deployment status:"
+          kubectl get deployments -n ${namespace}
+          
+          # Print services and ingress
+          echo "Services:"
+          kubectl get svc -n ${namespace}
+          
+          echo "Ingress:"
+          kubectl get ingress -n ${namespace}
