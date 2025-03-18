@@ -147,6 +147,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       imageTag: ${{ steps.set-image-tag.outputs.imageTag }}
+      registry: ${{ steps.load-env.outputs.registry }}
+      image_org: ${{ steps.load-env.outputs.image_org }}      
     
     steps:
       - name: Checkout code
@@ -177,10 +179,7 @@ jobs:
             echo "Warning: deploy_env_vars file not found"
             exit 1
           fi
-        outputs:
-          registry: ${{ steps.load-env.outputs.registry }}
-          image_org: ${{ steps.load-env.outputs.image_org }}
-      
+        
       - name: Download Auth Service Artifact
         uses: actions/download-artifact@v4
         with:
