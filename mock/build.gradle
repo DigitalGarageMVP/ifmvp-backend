@@ -1,5 +1,6 @@
 dependencies {
     implementation project(':common')
+    runtimeOnly 'com.h2database:h2'  // H2 데이터베이스 의존성 추가
 }
 
 bootJar {

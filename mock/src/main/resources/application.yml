@@ -9,21 +9,11 @@ spring:
     name: mock-service
   # mock/src/main/resources/application.yml에 추가
     # H2 인메모리 데이터베이스 설정 추가
-  datasource:
-    url: jdbc:h2:mem:mockdb
-    driver-class-name: org.postgresql.Driver
-    username: ${POSTGRES_USER:postgres}
-    password: ${POSTGRES_PASSWORD:Passw0rd}
-  jpa:
-    hibernate:
-      ddl-auto: ${JPA_DDL_AUTO:update}
-    show-sql: ${JPA_SHOW_SQL:true}
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-        hbm2ddl:
-          auto: create
+datasource:
+  url: jdbc:h2:mem:mockdb;DB_CLOSE_DELAY=-1
+  driver-class-name: org.h2.Driver
+  username: sa
+  password:
 
 azure:
   servicebus:
@@ -45,7 +35,10 @@ springdoc:
 
 logging:
   level:
-    com.email.mock: ${LOG_LEVEL:DEBUG}
+    root: INFO
+    com.email.mock: DEBUG
+    com.azure: DEBUG
+    org.springframework.web: DEBUG
 
 management:
   endpoints:
