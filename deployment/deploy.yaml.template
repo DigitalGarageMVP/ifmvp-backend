@@ -427,8 +427,13 @@ spec:
             name: email-service
             port:
               number: 80
-        path: /api/attachments
+      - path: /api/attachments
         pathType: Prefix
+        backend:
+          service:
+            name: email-service
+            port:
+              number: 80
       - path: /api/mock
         pathType: Prefix
         backend:
