@@ -5,8 +5,10 @@ namespace=if-ifmvp-ns
 
 # Container Registry Settings
 DEPLOY_DIR=deployment
-registry=ifmvpcr.azurecr.io  # ACR 인스턴스 URL
-image_org=ifmvp  # 이미지 조직/리포지토리
+# ACR 인스턴스 URL
+registry=ifmvpcr.azurecr.io
+# 이미지 조직/리포지토리
+image_org=ifmvp
 
 # Application Settings
 replicas=2

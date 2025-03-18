@@ -224,7 +224,7 @@ jobs:
       - name: Login to Azure Container Registry
         uses: docker/login-action@v2
         with:
-          registry: ${{ secrets.REGISTRY }}  # deploy_env_vars에서 가져온 레지스트리 주소
+          registry: ${{ env.registry }}  # deploy_env_vars에서 가져온 레지스트리 주소
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
           ecr: false  # ECR 자동 감지 비활성화
