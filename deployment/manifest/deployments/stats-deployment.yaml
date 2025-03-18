@@ -5,6 +5,7 @@ metadata:
   labels:
     app: stats
 spec:
+  revisionHistoryLimit: 3
   replicas: 2
   selector:
     matchLabels:
