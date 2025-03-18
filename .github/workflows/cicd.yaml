@@ -213,7 +213,7 @@ jobs:
       - name: Set Image Tag
         id: set-image-tag
         run: |
-          IMAGE_TAG=latest
+          IMAGE_TAG=$(date +'%Y%m%d%H%M%S')
           echo "imageTag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
           echo "Image tag: ${IMAGE_TAG}"
       
@@ -345,6 +345,10 @@ jobs:
           export email_image_path=${registry}/${image_org}/email:${{ needs.release.outputs.imageTag }}
           export mock_image_path=${registry}/${image_org}/mock:${{ needs.release.outputs.imageTag }}
           export stats_image_path=${registry}/${image_org}/stats:${{ needs.release.outputs.imageTag }}
+          echo "auth_image_path: ${{auth_image_path}}"
+          echo "email_image_path: ${{email_image_path}}"
+          echo "mock_image_path: ${{mock_image_path}}"
+          echo "stats_image_path: ${{stats_image_path}}"
           
           # Generate manifest using template
           envsubst < ${{ env.DEPLOY_DIR }}/deploy.yaml.template > ${{ env.DEPLOY_DIR }}/deploy.yaml
