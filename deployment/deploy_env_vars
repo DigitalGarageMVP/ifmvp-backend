@@ -1,20 +1,14 @@
-# Team Settings
 teamid=if
 root_project=email-service
 namespace=if-ifmvp-ns
 
-# Container Registry Settings
 DEPLOY_DIR=deployment
-# ACR 인스턴스 URL
 registry=ifmvpcr.azurecr.io
-# 이미지 조직/리포지토리
 image_org=ifmvp
 
-# Application Settings
 replicas=2
 allowed_origins=http://20.214.197.54
 
-# Security Settings
 jwt_secret_key=yourSecretKeyHereForJwtTokenSigning
 postgres_user=postgres
 postgres_password=Passw0rd
@@ -23,7 +17,6 @@ mongodb_password=Passw0rd
 azure_servicebus_connection_string=Endpoint=sb://sb-if-ifmvp.servicebus.windows.net/;SharedAccessKeyName=if-backend;SharedAccessKey=IicFGjdVwp8YlkSCKYgRyOZ7cubKSvHJG+ASbH5ah9M=
 azure_storage_connection_string=DefaultEndpointsProtocol=https;AccountName=ifmvp;AccountKey=0hBdcnBFzZwXRPjGeF8C8U/cbh4X4uK06IWCUHtTeTy4q64t8LlpXi9D8Xcxp5enTpm6aVg8XCau+AStexwJww==;EndpointSuffix=core.windows.net
 
-# Resource Settings
 resources_requests_cpu=256m
 resources_requests_memory=256Mi
 resources_limits_cpu=1024m
