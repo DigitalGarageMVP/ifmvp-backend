@@ -1,7 +1,6 @@
 teamid=if
 root_project=email-service
 namespace=if-ifmvp-ns
-DEPLOY_DIR=deployment
 registry=ifmvpcr.azurecr.io
 image_org=ifmvp
 replicas=2
