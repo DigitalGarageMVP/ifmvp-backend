@@ -213,8 +213,9 @@ jobs:
       
       - name: Debug environment variables
         run: |
-          echo "env_registry: ${{ env.registry }}"
-          echo "env_image_org: ${{ image_org }}"
+          echo "deploydir: ${{ env.DEPLOY_DIR }}"
+          echo "registry: ${{ env.registry }}"
+          echo "image org: ${{ image_org }}"
 
       - name: Login to Azure Container Registry
         uses: docker/login-action@v3
