@@ -213,22 +213,11 @@ jobs:
       
       - name: Debug environment variables
         run: |
-          echo "Registry: ${registry}"
+          echo "Registry: ${env.registry}"
           echo "Image org: ${image_org}"
 
-      # - name: Set environment variables
-      #   run: |
-      #     echo "REGISTRY=$(grep '^registry=' deployment/deploy_env_vars | cut -d'=' -f2)" >> $GITHUB_ENV
-      #     echo "IMAGE_ORG=$(grep '^image_org=' deployment/deploy_env_vars | cut -d'=' -f2)" >> $GITHUB_ENV
-          
-      # - name: Log in to ACR
-      #   uses: docker/login-action@v2
-      #   with:
-      #     registry: ${{ env.registry || 'ifmvpcr.azurecr.io' }}  # 환경 변수 로드 실패 시 기본값 제공
-      #     username: ${{ secrets.ACR_USERNAME }}
-      #     password: ${{ secrets.ACR_PASSWORD }}
       - name: Login to Azure Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.registry }}
           username: ${{ secrets.ACR_USERNAME }}
