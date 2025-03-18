@@ -7,10 +7,27 @@ server:
 spring:
   application:
     name: mock-service
+  # mock/src/main/resources/application.yml에 추가
+    # H2 인메모리 데이터베이스 설정 추가
+  datasource:
+    url: jdbc:h2:mem:mockdb
+    driver-class-name: org.postgresql.Driver
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:Passw0rd}
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    show-sql: ${JPA_SHOW_SQL:true}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        hbm2ddl:
+          auto: create
 
 azure:
   servicebus:
-    connection-string: ${AZURE_SERVICEBUS_CONNECTION_STRING}
+    connection-string: ${AZURE_SERVICEBUS_CONNECTION_STRING:Endpoint=sb://sb-if-ifmvp.servicebus.windows.net/;SharedAccessKeyName=if-backend;SharedAccessKey=IicFGjdVwp8YlkSCKYgRyOZ7cubKSvHJG+ASbH5ah9M=}
     queue:
       email-events: ${AZURE_QUEUE_EMAIL_EVENTS:email-events}
       email-open-events: ${AZURE_QUEUE_OPEN_EVENTS:email-open-events}

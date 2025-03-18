@@ -24,6 +24,12 @@ spring:
      username: ${POSTGRES_USER:postgres}
      password: ${POSTGRES_PASSWORD:Passw0rd}
      driver-class-name: org.postgresql.Driver
+
+     hikari:
+       maximum-pool-size: 5
+       minimum-idle: 2
+       idle-timeout: 30000
+       connection-timeout: 20000
   jpa:
     hibernate:
       ddl-auto: ${JPA_DDL_AUTO:update}
@@ -32,6 +38,8 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+        hbm2ddl:
+          auto: create
 
 azure:
   storage:
@@ -45,6 +53,7 @@ azure:
 
 mock:
   delivery:
+    enabled: false
     service-url: ${MOCK_DELIVERY_URL:http://localhost:8082}
 
 jwt:

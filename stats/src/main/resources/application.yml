@@ -8,9 +8,9 @@ spring:
   application:
     name: stats-service
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:statsdb}
+    url: jdbc:postgresql://${POSTGRES_HOST:20.249.206.101}:${POSTGRES_PORT:5432}/${POSTGRES_DB:statsdb}
     username: ${POSTGRES_USER:postgres}
-    password: ${POSTGRES_PASSWORD:postgres}
+    password: ${POSTGRES_PASSWORD:Passw0rd}
   jpa:
     hibernate:
       ddl-auto: ${JPA_DDL_AUTO:update}
@@ -22,7 +22,7 @@ spring:
 
 azure:
   servicebus:
-    connection-string: ${AZURE_SERVICEBUS_CONNECTION_STRING}
+    connection-string: "Endpoint=sb://sb-if-ifmvp.servicebus.windows.net/;SharedAccessKeyName=if-backend;SharedAccessKey=da36AeZ3gBawRDZ+3orftHOV9Lj3E+Ijq+ASbNFnSN8="
     queue:
       email-events: ${AZURE_QUEUE_EMAIL_EVENTS:email-events}
       email-open-events: ${AZURE_QUEUE_OPEN_EVENTS:email-open-events}
