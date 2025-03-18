@@ -209,13 +209,25 @@ jobs:
         run: |
           echo "Registry: ${registry}"
           echo "Image org: ${image_org}"
+
+      - name: Set environment variables
+        run: |
+          echo "REGISTRY=$(grep '^registry=' deployment/deploy_env_vars | cut -d'=' -f2)" >> $GITHUB_ENV
+          echo "IMAGE_ORG=$(grep '^image_org=' deployment/deploy_env_vars | cut -d'=' -f2)" >> $GITHUB_ENV
           
-      - name: Log in to ACR
+      # - name: Log in to ACR
+      #   uses: docker/login-action@v2
+      #   with:
+      #     registry: ${{ env.registry || 'ifmvpcr.azurecr.io' }}  # 환경 변수 로드 실패 시 기본값 제공
+      #     username: ${{ secrets.ACR_USERNAME }}
+      #     password: ${{ secrets.ACR_PASSWORD }}
+      - name: Login to Azure Container Registry
         uses: docker/login-action@v2
         with:
-          registry: ${{ env.registry || 'ifmvpcr.azurecr.io' }}  # 환경 변수 로드 실패 시 기본값 제공
+          registry: ${{ env.REGISTRY }}  # deploy_env_vars에서 가져온 레지스트리 주소
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
+          ecr: false  # ECR 자동 감지 비활성화
       
       - name: Build and Push Auth Service Image
         uses: docker/build-push-action@v4
