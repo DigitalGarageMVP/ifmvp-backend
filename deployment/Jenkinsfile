@@ -227,10 +227,10 @@ testcontainers.reuse.enable=true'''
                     kubectl apply -f deployment/${manifest}
 
                     echo "Waiting for deployments to be ready..."
-                    kubectl -n ${namespace} wait --for=condition=available deployment/auth --timeout=300s
-                    kubectl -n ${namespace} wait --for=condition=available deployment/email --timeout=300s
-                    kubectl -n ${namespace} wait --for=condition=available deployment/mock --timeout=300s
-                    kubectl -n ${namespace} wait --for=condition=available deployment/stats --timeout=300s
+                    kubectl -n ${namespace} wait --for=condition=available deployment/auth-deployment --timeout=300s
+                    kubectl -n ${namespace} wait --for=condition=available deployment/email-deployment --timeout=300s
+                    kubectl -n ${namespace} wait --for=condition=available deployment/mock-deployment --timeout=300s
+                    kubectl -n ${namespace} wait --for=condition=available deployment/stats-deployment --timeout=300s
                 """
             }
         }
