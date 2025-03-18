@@ -358,10 +358,10 @@ jobs:
           kubectl apply -f ${{ env.DEPLOY_DIR }}/deploy.yaml
           
           echo "Waiting for deployments to be ready..."
-          kubectl -n ${namespace} wait --for=condition=available deployment/auth-deployment --timeout=300s
-          kubectl -n ${namespace} wait --for=condition=available deployment/email-deployment --timeout=300s
-          kubectl -n ${namespace} wait --for=condition=available deployment/stats-deployment --timeout=300s
-          kubectl -n ${namespace} wait --for=condition=available deployment/mock-deployment --timeout=300s
+          kubectl -n ${namespace} wait --for=condition=available deployment/auth-deployment --timeout=600s
+          kubectl -n ${namespace} wait --for=condition=available deployment/email-deployment --timeout=600s
+          kubectl -n ${namespace} wait --for=condition=available deployment/stats-deployment --timeout=600s
+          kubectl -n ${namespace} wait --for=condition=available deployment/mock-deployment --timeout=600s
           
           # Print deployment status
           echo "Deployment status:"
