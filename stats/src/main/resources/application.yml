@@ -22,9 +22,9 @@ spring:
 
 azure:
   servicebus:
-    connection-string: "Endpoint=sb://sb-if-ifmvp.servicebus.windows.net/;SharedAccessKeyName=if-backend;SharedAccessKey=da36AeZ3gBawRDZ+3orftHOV9Lj3E+Ijq+ASbNFnSN8="
+    connection-string: ${AZURE_SERVICEBUS_CONNECTION_STRING:Endpoint=sb://sb-if-ifmvp.servicebus.windows.net/;SharedAccessKeyName=if-backend;SharedAccessKey=IicFGjdVwp8YlkSCKYgRyOZ7cubKSvHJG+ASbH5ah9M=}
     queue:
-      email-events: ${AZURE_QUEUE_EMAIL_EVENTS:email-events}
+      email-events: ${AZURE_QUEUE_EMAIL_EVENTS:email-service-queue}
       email-open-events: ${AZURE_QUEUE_OPEN_EVENTS:email-open-events}
       attachment-click-events: ${AZURE_QUEUE_CLICK_EVENTS:attachment-click-events}
 
