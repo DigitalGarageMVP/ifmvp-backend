@@ -151,6 +151,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Debug File Location
+        run: |
+          echo "DEPLOY_DIR: ${{ env.DEPLOY_DIR }}"
+          ls -la ${{ env.DEPLOY_DIR }}/
+          find ${{ env.DEPLOY_DIR }} -name "deploy_env_vars" -type f
       
       - name: Load environment variables
         run: |
