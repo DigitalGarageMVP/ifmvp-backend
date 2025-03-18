@@ -205,10 +205,10 @@ jobs:
           echo "imageTag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
           echo "Image tag: ${IMAGE_TAG}"
       
-      # - name: Debug environment variables
-      #   run: |
-      #     echo "Registry: ${registry}"
-      #     echo "Image org: ${image_org}"
+      - name: Debug environment variables
+        run: |
+          echo "Registry: ${registry}"
+          echo "Image org: ${image_org}"
 
       # - name: Set environment variables
       #   run: |
