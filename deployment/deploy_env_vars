@@ -4,8 +4,9 @@ root_project=email-service
 namespace=if-ifmvp-ns
 
 # Container Registry Settings
-registry=ifmvpcr.azurecr.io
-image_org=ifmvp
+DEPLOY_DIR=deployment
+registry=ifmvpcr.azurecr.io  # ACR 인스턴스 URL
+image_org=ifmvp  # 이미지 조직/리포지토리
 
 # Application Settings
 replicas=2
