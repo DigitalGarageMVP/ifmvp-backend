@@ -161,24 +161,6 @@ public class EmailRepositoryImpl implements EmailRepository {
 
             log.debug("첨부파일 메타데이터 저장 완료: id={}, rowsAffected={}", metadata.getId(), rowsAffected);
 
-            // Query DB에도 동일한 데이터 저장 (View 동기화)
-            try {
-                queryDb.update(INSERT_ATTACHMENT_METADATA_SQL,
-                        metadata.getId(),
-                        metadata.getFileName(),
-                        metadata.getContentType(),
-                        metadata.getFileSize(),
-                        metadata.getBlobName(),
-                        metadata.getContainerName(),
-                        metadata.getUploadTime(),
-                        metadata.getStatus().name(),
-                        now);  // created_at만 사용
-                log.debug("Query DB에 첨부파일 메타데이터 복제 완료: id={}", metadata.getId());
-            } catch (Exception e) {
-                log.warn("Query DB에 첨부파일 메타데이터 복제 실패: id={}, error={}", metadata.getId(), e.getMessage());
-                // 실패해도 진행 (Command DB에만 성공해도 기능상 문제 없음)
-            }
-
             return metadata;
         } catch (Exception e) {
             log.error("첨부파일 메타데이터 저장 오류: attachmentId={}", metadata.getId(), e);
