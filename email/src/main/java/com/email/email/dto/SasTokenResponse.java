@@ -30,4 +30,7 @@ public class SasTokenResponse {
    
    @Schema(description = "만료 시간", example = "1685620800000")
    private long expirationTime;
+
+   @Schema(description = "attachmentId", example = "12345678-1234-1234-1234-123456789012")
+   private String attachmentId;
 }

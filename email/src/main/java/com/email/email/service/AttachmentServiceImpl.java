@@ -83,6 +83,7 @@ public class AttachmentServiceImpl implements AttachmentService {
                .containerName(containerName)
                .blobName(blobName)
                .expirationTime(System.currentTimeMillis() + DEFAULT_SAS_TOKEN_VALIDITY)
+               .attachmentId(attachmentId)
                .build();
    }
 
