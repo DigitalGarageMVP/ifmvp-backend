@@ -38,8 +38,8 @@ public class EmailRepositoryImpl implements EmailRepository {
                     "VALUES (?, ?, ?, ?, ?)";
 
     private static final String INSERT_ATTACHMENT_METADATA_SQL =
-            "INSERT INTO attachment_metadata (id, file_name, content_type, file_size, blob_name, container_name, upload_time, status, created_at) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            "INSERT INTO attachment_metadata (id, file_name, content_type, file_size, blob_name, downloadUrl, container_name, upload_time, status, created_at) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     private static final String INSERT_EMAIL_ATTACHMENT_SQL =
             "INSERT INTO email_attachments (email_id, attachment_id, created_at) " +
@@ -147,13 +147,14 @@ public class EmailRepositoryImpl implements EmailRepository {
         log.debug("첨부파일 메타데이터 저장 시작: id={}, fileName={}", metadata.getId(), metadata.getFileName());
 
         try {
-            // Command DB에 저장 - 9개 파라미터만 사용
+            // Command DB에 저장 - 10개 파라미터만 사용
             int rowsAffected = commandDb.update(INSERT_ATTACHMENT_METADATA_SQL,
                     metadata.getId(),
                     metadata.getFileName(),
                     metadata.getContentType(),
                     metadata.getFileSize(),
                     metadata.getBlobName(),
+                    metadata.getDownloadUrl(),
                     metadata.getContainerName(),
                     metadata.getUploadTime(),
                     metadata.getStatus().name(),
