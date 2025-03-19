@@ -8,7 +8,7 @@ COPY ${BUILD_LIB_DIR}/${ARTIFACTORY_FILE} app.jar
 FROM openjdk:23-slim
 ENV USERNAME k8s
 ENV ARTIFACTORY_HOME /home/${USERNAME}
-ENV JAVA_OPTS=""
+ENV JAVA_OPTS="-Duser.timezone=Asia/Seoul"
 
 # Add a non-root user
 RUN adduser --system --group ${USERNAME} && \
