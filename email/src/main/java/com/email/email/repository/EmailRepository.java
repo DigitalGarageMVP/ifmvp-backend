@@ -91,4 +91,12 @@ public interface EmailRepository {
     * @return 수신자 목록
     */
    List<EmailRecipient> findRecipientsByEmailIdAndEmail(String emailId, String recipientEmail);
+
+   /**
+    * 이메일 ID로 첨부파일 목록을 조회합니다.
+    *
+    * @param emailId 이메일 ID
+    * @return 첨부파일 ID 목록
+    */
+   List<String> findAttachmentIdsByEmailId(String emailId);
 }

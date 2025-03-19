@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
 * 이메일 발송 이력 응답 DTO 클래스입니다.
 */
@@ -39,4 +41,7 @@ public class EmailHistoryResponse {
    
    @Schema(description = "제목", example = "안녕하세요, 이메일 제목입니다.")
    private String subject;
+
+   @Schema(description = "첨부파일 ID 목록", example = "[\"12345678-1234-1234-1234-123456789012\"]")
+   private List<String> attachmentIds;
 }

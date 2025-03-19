@@ -222,6 +222,9 @@ public class EmailServiceImpl implements EmailService {
                 recipients = emailRepository.findRecipientsByEmailId(email.getId());
             }
 
+            // 이메일의 첨부파일 ID 목록 조회
+            List<String> attachmentIds = emailRepository.findAttachmentIdsByEmailId(email.getId());
+
             for (EmailRecipient recipient : recipients) {
                 responses.add(EmailHistoryResponse.builder()
                         .senderEmail(email.getSenderEmail())
@@ -234,6 +237,7 @@ public class EmailServiceImpl implements EmailService {
                         .receiveStatus(recipient.getStatus().name())
                         .failReason(recipient.getFailReason())
                         .subject(email.getSubject())
+                        .attachmentIds(attachmentIds) // 첨부파일 ID 목록 추가
                         .build());
             }
         }
