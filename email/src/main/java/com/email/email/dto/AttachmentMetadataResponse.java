@@ -33,4 +33,7 @@ public class AttachmentMetadataResponse {
    
    @Schema(description = "상태", example = "UPLOADED")
    private String status;
+
+   @Schema(description = "첨부파일 URL", example = "http://localhost/attch")
+   private String downloadUrl;
 }

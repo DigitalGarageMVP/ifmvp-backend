@@ -388,7 +388,23 @@ public class EmailRepositoryImpl implements EmailRepository {
                     .containerName(rs.getString("container_name"))
                     .uploadTime(rs.getTimestamp("upload_time").toLocalDateTime())
                     .status(AttachmentStatus.valueOf(rs.getString("status")))
+                    .downloadUrl(rs.getString("downloadurl"))
                     .build();
+        }
+    }
+
+    // File: ifmvp-backend\email\src\main\java\com\email\email\repository\EmailRepositoryImpl.java
+    @Override
+    public List<String> findAttachmentIdsByEmailId(String emailId) {
+        log.debug("이메일 첨부파일 ID 조회: emailId={}", emailId);
+
+        String sql = "SELECT attachment_id FROM email_attachments WHERE email_id = ?";
+
+        try {
+            return queryDb.queryForList(sql, String.class, emailId);
+        } catch (Exception e) {
+            log.error("이메일 첨부파일 ID 조회 오류: emailId={}", emailId, e);
+            return Collections.emptyList();
         }
     }
 }
