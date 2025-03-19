@@ -57,15 +57,18 @@ public class AttachmentServiceImpl implements AttachmentService {
        // 첨부파일 메타데이터 저장
        String attachmentId = UUID.randomUUID().toString();
 
+       String downloadUrl = sasTokenInfo.getBlobUrl() + "?" + sasTokenInfo.getSasToken();
+
        AttachmentMetadata metadata = AttachmentMetadata.builder()
                .id(attachmentId)
                .fileName(request.getFileName())
                .contentType(request.getContentType())
                .fileSize(request.getFileSize())
                .blobName(blobName)
+               .downloadUrl(downloadUrl)
                .containerName(containerName)
                .uploadTime(LocalDateTime.now())
-               .status(AttachmentStatus.PENDING)
+               .status(AttachmentStatus.UPLOADED)
                .build();
 
        try {

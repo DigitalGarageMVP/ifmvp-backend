@@ -21,6 +21,7 @@ public class AttachmentMetadata {
    private String contentType;
    private long fileSize;
    private String blobName;
+   private String downloadUrl;
    private String containerName;
    private LocalDateTime uploadTime;
    private AttachmentStatus status;
