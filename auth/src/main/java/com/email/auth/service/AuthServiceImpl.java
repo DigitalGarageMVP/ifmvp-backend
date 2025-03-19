@@ -45,6 +45,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new InvalidCredentialsException("사용자 ID 또는 비밀번호가 잘못되었습니다."));
         
         validateCredentials(user, request.getPassword());
+        log.info(request.getPassword());
         
         JwtTokenDTO tokenDto = tokenProvider.createToken(user);
         

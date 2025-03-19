@@ -8,9 +8,9 @@ spring:
   application:
     name: auth-service
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:authdb}
+    url: jdbc:postgresql://${POSTGRES_HOST:20.249.203.57}:${POSTGRES_PORT:5432}/${POSTGRES_DB:authdb}
     username: ${POSTGRES_USER:postgres}
-    password: ${POSTGRES_PASSWORD:postgres}
+    password: ${POSTGRES_PASSWORD:Passw0rd}
   jpa:
     hibernate:
       ddl-auto: ${JPA_DDL_AUTO:update}
@@ -35,7 +35,7 @@ springdoc:
 logging:
   level:
     com.email.auth: ${LOG_LEVEL:DEBUG}
-    org.springframework.security: ${LOG_LEVEL_SECURITY:INFO}
+    org.springframework.security: ${LOG_LEVEL_SECURITY:DEBUG}
 
 management:
   endpoints:

@@ -47,16 +47,16 @@ public class AttachmentServiceImpl implements AttachmentService {
    @Transactional
    public SasTokenResponse generateSasToken(AttachmentMetadataRequest request) {
        log.info("첨부파일 업로드용 SAS 토큰 발급 요청: fileName={}", request.getFileName());
-       
+
        String blobName = generateUniqueBlobName(request.getFileName());
-       
+
        // SAS 토큰 생성
-       BlobStorageClient.SasTokenInfo sasTokenInfo = 
+       BlobStorageClient.SasTokenInfo sasTokenInfo =
                blobStorageClient.generateSasToken(blobName, request.getContentType());
-       
+
        // 첨부파일 메타데이터 저장
        String attachmentId = UUID.randomUUID().toString();
-       
+
        AttachmentMetadata metadata = AttachmentMetadata.builder()
                .id(attachmentId)
                .fileName(request.getFileName())
@@ -67,11 +67,16 @@ public class AttachmentServiceImpl implements AttachmentService {
                .uploadTime(LocalDateTime.now())
                .status(AttachmentStatus.PENDING)
                .build();
-       
-       emailRepository.saveAttachmentMetadata(metadata);
-       
-       log.info("첨부파일 메타데이터 저장 완료: attachmentId={}", attachmentId);
-       
+
+       try {
+           emailRepository.saveAttachmentMetadata(metadata);
+           log.info("첨부파일 메타데이터 저장 완료: attachmentId={}, blobName={}", attachmentId, blobName);
+       } catch (Exception e) {
+           log.error("첨부파일 메타데이터 저장 실패: fileName={}, error={}", request.getFileName(), e.getMessage(), e);
+           throw new RuntimeException("첨부파일 메타데이터 저장 실패", e);
+       }
+
+
        return SasTokenResponse.builder()
                .sasToken(sasTokenInfo.getSasToken())
                .blobUrl(sasTokenInfo.getBlobUrl())
@@ -80,7 +85,7 @@ public class AttachmentServiceImpl implements AttachmentService {
                .expirationTime(System.currentTimeMillis() + DEFAULT_SAS_TOKEN_VALIDITY)
                .build();
    }
-   
+
    /**
     * 첨부파일 메타데이터를 조회합니다.
     *
@@ -91,10 +96,10 @@ public class AttachmentServiceImpl implements AttachmentService {
    @Transactional(readOnly = true)
    public AttachmentMetadataResponse getAttachmentMetadata(String attachmentId) {
        log.info("첨부파일 메타데이터 조회: attachmentId={}", attachmentId);
-       
+
        AttachmentMetadata metadata = emailRepository.findAttachmentById(attachmentId)
                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "첨부파일을 찾을 수 없습니다."));
-       
+
        return AttachmentMetadataResponse.builder()
                .attachmentId(metadata.getId())
                .fileName(metadata.getFileName())
@@ -104,7 +109,7 @@ public class AttachmentServiceImpl implements AttachmentService {
                .status(metadata.getStatus().name())
                .build();
    }
-   
+
    /**
     * 첨부파일 상세 정보를 조회합니다.
     *
@@ -115,26 +120,26 @@ public class AttachmentServiceImpl implements AttachmentService {
    @Transactional(readOnly = true)
    public List<AttachmentMetadata> getAttachmentDetails(List<String> attachmentIds) {
        log.info("첨부파일 상세 정보 조회: attachmentIds={}", attachmentIds);
-       
+
        List<AttachmentMetadata> attachments = emailRepository.findAttachmentsByIds(attachmentIds);
-       
+
        // 존재하지 않는 첨부파일이 있는지 확인
        if (attachments.size() != attachmentIds.size()) {
            List<String> foundIds = attachments.stream()
                    .map(AttachmentMetadata::getId)
                    .collect(Collectors.toList());
-           
+
            List<String> missingIds = attachmentIds.stream()
                    .filter(id -> !foundIds.contains(id))
                    .collect(Collectors.toList());
-           
+
            log.warn("존재하지 않는 첨부파일 ID: {}", missingIds);
            throw new BusinessException(ErrorCode.NOT_FOUND, "일부 첨부파일을 찾을 수 없습니다.");
        }
-       
+
        return attachments;
    }
-   
+
    /**
     * 고유한 Blob 이름을 생성합니다.
     *
@@ -144,11 +149,11 @@ public class AttachmentServiceImpl implements AttachmentService {
    private String generateUniqueBlobName(String fileName) {
        String extension = "";
        int lastDotIndex = fileName.lastIndexOf(".");
-       
+
        if (lastDotIndex > 0) {
            extension = fileName.substring(lastDotIndex);
        }
-       
+
        return UUID.randomUUID().toString() + extension;
    }
 }

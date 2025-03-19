@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: common-config
 data:
-  ALLOWED_ORIGINS: "http://localhost:8080,http://localhost:8081,http://localhost:8082,http://localhost:8083,http://20.214.193.48"
+  ALLOWED_ORIGINS: "http://localhost:8080,http://localhost:8081,http://localhost:8082,http://localhost:8083,http://20.214.193.48,http://20.214.197.54"
   LOG_LEVEL: "DEBUG"
   LOG_LEVEL_SECURITY: "INFO"
   MONGODB_PORT: "27017"

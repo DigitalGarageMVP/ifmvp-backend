@@ -40,6 +40,6 @@ public class EmailSendRequest {
    @Schema(description = "내용", example = "안녕하세요, 이메일 내용입니다.")
    private String content;
    
-   @Schema(description = "첨부파일 ID 목록", example = "[\"12345678-1234-1234-1234-123456789012\"]")
+   @Schema(description = "첨부파일 ID 목록", example = "[\"12345678-1234-1234-1234-123456789012\"]", required = false)
    private List<String> attachmentIds;
 }

@@ -5,6 +5,7 @@ metadata:
   labels:
     app: mock
 spec:
+  revisionHistoryLimit: 3
   replicas: 2
   selector:
     matchLabels:

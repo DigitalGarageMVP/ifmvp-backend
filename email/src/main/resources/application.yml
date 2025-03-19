@@ -24,6 +24,12 @@ spring:
      username: ${POSTGRES_USER:postgres}
      password: ${POSTGRES_PASSWORD:Passw0rd}
      driver-class-name: org.postgresql.Driver
+
+     hikari:
+       maximum-pool-size: 5
+       minimum-idle: 2
+       idle-timeout: 30000
+       connection-timeout: 20000
   jpa:
     hibernate:
       ddl-auto: ${JPA_DDL_AUTO:update}
@@ -32,6 +38,8 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+        hbm2ddl:
+          auto: create
 
 azure:
   storage:
@@ -42,9 +50,12 @@ azure:
     connection-string: ${AZURE_SERVICEBUS_CONNECTION_STRING:Endpoint=sb://sb-if-ifmvp.servicebus.windows.net/;SharedAccessKeyName=if-backend;SharedAccessKey=IicFGjdVwp8YlkSCKYgRyOZ7cubKSvHJG+ASbH5ah9M=}
     queue:
       email-events: ${AZURE_QUEUE_EMAIL_EVENTS:email-events}
+      email-open-events: ${AZURE_QUEUE_EMAIL_EVENTS:email-events}
+      attachment-click-events: ${AZURE_QUEUE_OPEN_EVENTS:email-open-events}
 
 mock:
   delivery:
+    enabled: false
     service-url: ${MOCK_DELIVERY_URL:http://localhost:8082}
 
 jwt:

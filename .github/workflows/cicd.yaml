@@ -3,7 +3,7 @@ name: Backend CI/CD Pipeline
 on:
   push:
     branches:
-      - k8s
+      - develop
   workflow_dispatch:
 
 env:
@@ -345,6 +345,8 @@ jobs:
           export email_image_path=${registry}/${image_org}/email:${{ needs.release.outputs.imageTag }}
           export mock_image_path=${registry}/${image_org}/mock:${{ needs.release.outputs.imageTag }}
           export stats_image_path=${registry}/${image_org}/stats:${{ needs.release.outputs.imageTag }}
+          echo "auth_image_path: ${registry}/${image_org}/auth:${{ needs.release.outputs.imageTag }}"
+          echo "email_image_path: ${registry}/${image_org}/email:${{ needs.release.outputs.imageTag }}"
           
           # Generate manifest using template
           envsubst < ${{ env.DEPLOY_DIR }}/deploy.yaml.template > ${{ env.DEPLOY_DIR }}/deploy.yaml
@@ -358,10 +360,10 @@ jobs:
           kubectl apply -f ${{ env.DEPLOY_DIR }}/deploy.yaml
           
           echo "Waiting for deployments to be ready..."
-          kubectl -n ${namespace} wait --for=condition=available deployment/auth --timeout=300s
-          kubectl -n ${namespace} wait --for=condition=available deployment/email --timeout=300s
-          kubectl -n ${namespace} wait --for=condition=available deployment/mock --timeout=300s
-          kubectl -n ${namespace} wait --for=condition=available deployment/stats --timeout=300s
+          kubectl -n ${namespace} wait --for=condition=available deployment/auth-deployment --timeout=600s
+          kubectl -n ${namespace} wait --for=condition=available deployment/email-deployment --timeout=600s
+          kubectl -n ${namespace} wait --for=condition=available deployment/stats-deployment --timeout=600s
+          kubectl -n ${namespace} wait --for=condition=available deployment/mock-deployment --timeout=600s
           
           # Print deployment status
           echo "Deployment status:"

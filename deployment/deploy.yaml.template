@@ -95,13 +95,20 @@ type: Opaque
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth
+  name: auth-deployment
+  labels:
+    app: auth
   namespace: ${namespace}
 spec:
   replicas: ${replicas}
   selector:
     matchLabels:
       app: auth
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   template:
     metadata:
       labels:
@@ -131,9 +138,10 @@ spec:
           httpGet:
             path: /actuator/health
             port: 8080
-          failureThreshold: 30
+          initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
+          failureThreshold: 30
         livenessProbe:
           httpGet:
             path: /actuator/health
@@ -141,6 +149,7 @@ spec:
           initialDelaySeconds: 60
           periodSeconds: 20
           timeoutSeconds: 5
+          failureThreshold: 3
         readinessProbe:
           httpGet:
             path: /actuator/health
@@ -148,18 +157,26 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
+          failureThreshold: 3
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: email
+  name: email-deployment
+  labels:
+    app: email
   namespace: ${namespace}
 spec:
   replicas: ${replicas}
   selector:
     matchLabels:
       app: email
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   template:
     metadata:
       labels:
@@ -189,9 +206,10 @@ spec:
           httpGet:
             path: /actuator/health
             port: 8081
-          failureThreshold: 30
+          initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
+          failureThreshold: 30
         livenessProbe:
           httpGet:
             path: /actuator/health
@@ -199,6 +217,7 @@ spec:
           initialDelaySeconds: 60
           periodSeconds: 20
           timeoutSeconds: 5
+          failureThreshold: 3
         readinessProbe:
           httpGet:
             path: /actuator/health
@@ -206,15 +225,23 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
+          failureThreshold: 3
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mock
+  name: mock-deployment
+  labels:
+    app: mock
   namespace: ${namespace}
 spec:
   replicas: ${replicas}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: mock
@@ -247,9 +274,11 @@ spec:
           httpGet:
             path: /actuator/health
             port: 8082
+          initialDelaySeconds: 30
           failureThreshold: 30
           periodSeconds: 10
           timeoutSeconds: 5
+          failureThreshold: 30
         livenessProbe:
           httpGet:
             path: /actuator/health
@@ -257,6 +286,7 @@ spec:
           initialDelaySeconds: 60
           periodSeconds: 20
           timeoutSeconds: 5
+          failureThreshold: 3
         readinessProbe:
           httpGet:
             path: /actuator/health
@@ -264,18 +294,26 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
+          failureThreshold: 3
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: stats
+  name: stats-deployment
+  labels:
+    app: stats
   namespace: ${namespace}
 spec:
   replicas: ${replicas}
   selector:
     matchLabels:
       app: stats
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   template:
     metadata:
       labels:
@@ -305,9 +343,10 @@ spec:
           httpGet:
             path: /actuator/health
             port: 8083
-          failureThreshold: 30
+          initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
+          failureThreshold: 30
         livenessProbe:
           httpGet:
             path: /actuator/health
@@ -315,6 +354,7 @@ spec:
           initialDelaySeconds: 60
           periodSeconds: 20
           timeoutSeconds: 5
+          failureThreshold: 3
         readinessProbe:
           httpGet:
             path: /actuator/health
@@ -322,6 +362,7 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
+          failureThreshold: 3
 
 ---
 # Services
@@ -384,41 +425,207 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: email-services
+  name: ifmvp-ingress
   namespace: ${namespace}
   annotations:
     kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
-    nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   rules:
-    - http:
-        paths:
-          - path: /auth(/|$)(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: auth-service
-                port:
-                  number: 80
-          - path: /email(/|$)(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: email-service
-                port:
-                  number: 80
-          - path: /mock(/|$)(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: mock-service
-                port:
-                  number: 80
-          - path: /stats(/|$)(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: stats-service
-                port:
-                  number: 80
+  - http:
+      paths:
+      - path: /api/auth
+        pathType: Prefix
+        backend:
+          service:
+            name: auth-service
+            port:
+              number: 80
+      - path: /api/emails
+        pathType: Prefix
+        backend:
+          service:
+            name: email-service
+            port:
+              number: 80
+      - path: /api/attachments
+        pathType: Prefix
+        backend:
+          service:
+            name: email-service
+            port:
+              number: 80
+      - path: /api/mock
+        pathType: Prefix
+        backend:
+          service:
+            name: mock-service
+            port:
+              number: 80
+      - path: /api/statistics
+        pathType: Prefix
+        backend:
+          service:
+            name: stats-service
+            port:
+              number: 80
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: auth-hpa
+  namespace: if-ifmvp-ns
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: auth-deployment
+  minReplicas: 2
+  maxReplicas: 4
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 85
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 90
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: email-hpa
+  namespace: if-ifmvp-ns
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: email-deployment
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 85
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 85
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: mock-hpa
+  namespace: if-ifmvp-ns
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: mock-deployment
+  minReplicas: 2
+  maxReplicas: 4
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 85
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 85
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: stats-hpa
+  namespace: if-ifmvp-ns
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: stats-deployment
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 85
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 85
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+          

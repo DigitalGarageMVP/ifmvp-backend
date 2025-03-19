@@ -7,14 +7,25 @@ server:
 spring:
   application:
     name: mock-service
+  # mock/src/main/resources/application.yml에 추가
+    # H2 인메모리 데이터베이스 설정 추가
+datasource:
+  url: jdbc:h2:mem:mockdb;DB_CLOSE_DELAY=-1
+  driver-class-name: org.h2.Driver
+  username: sa
+  password:
 
 azure:
+  storage:
+    connection-string: ${AZURE_STORAGE_CONNECTION_STRING:DefaultEndpointsProtocol=https;AccountName=ifmvp;AccountKey=0hBdcnBFzZwXRPjGeF8C8U/cbh4X4uK06IWCUHtTeTy4q64t8LlpXi9D8Xcxp5enTpm6aVg8XCau+AStexwJww==;EndpointSuffix=core.windows.net}
+    container:
+      attachments: ${AZURE_CONTAINER_ATTACHMENTS:email-attachments}
   servicebus:
-    connection-string: ${AZURE_SERVICEBUS_CONNECTION_STRING}
+    connection-string: ${AZURE_SERVICEBUS_CONNECTION_STRING:Endpoint=sb://sb-if-ifmvp.servicebus.windows.net/;SharedAccessKeyName=if-backend;SharedAccessKey=IicFGjdVwp8YlkSCKYgRyOZ7cubKSvHJG+ASbH5ah9M=}
     queue:
       email-events: ${AZURE_QUEUE_EMAIL_EVENTS:email-events}
-      email-open-events: ${AZURE_QUEUE_OPEN_EVENTS:email-open-events}
-      attachment-click-events: ${AZURE_QUEUE_CLICK_EVENTS:attachment-click-events}
+      email-open-events: ${AZURE_QUEUE_EMAIL_EVENTS:email-events}
+      attachment-click-events: ${AZURE_QUEUE_OPEN_EVENTS:email-open-events}
 
 jwt:
   secret-key: ${JWT_SECRET_KEY:defaultSecretKey}
@@ -28,7 +39,10 @@ springdoc:
 
 logging:
   level:
-    com.email.mock: ${LOG_LEVEL:DEBUG}
+    root: INFO
+    com.email.mock: DEBUG
+    com.azure: DEBUG
+    org.springframework.web: DEBUG
 
 management:
   endpoints:

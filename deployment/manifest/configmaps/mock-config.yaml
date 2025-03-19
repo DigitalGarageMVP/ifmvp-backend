@@ -4,4 +4,5 @@ metadata:
   name: mock-config
 data:
   SERVER_PORT: "8082"
-  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-ifmvp-auth-postgresql:5432/authdb
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-ifmvp-mock-postgresql:5432/mockdb
+  DRIVER_CLASS_NAME: org.postgresql.Driver
