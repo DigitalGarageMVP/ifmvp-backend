@@ -14,22 +14,22 @@ spring:
     driver-class-name: org.postgresql.Driver
   # 다중 데이터소스 설정
   datasources:
-   command:
-    jdbcUrl: jdbc:postgresql://${POSTGRES_HOST:20.249.204.253}:${POSTGRES_PORT:5432}/${POSTGRES_COMMAND_DB:emaildb}
-    username: ${POSTGRES_USER:postgres}
-    password: ${POSTGRES_PASSWORD:Passw0rd}
-    driver-class-name: org.postgresql.Driver
-   query:
-     jdbcUrl: jdbc:postgresql://${POSTGRES_HOST:20.249.204.253}:${POSTGRES_PORT:5432}/${POSTGRES_QUERY_DB:emailviews}
-     username: ${POSTGRES_USER:postgres}
-     password: ${POSTGRES_PASSWORD:Passw0rd}
-     driver-class-name: org.postgresql.Driver
+    command:
+      jdbcUrl: jdbc:postgresql://${POSTGRES_HOST:20.249.204.253}:${POSTGRES_PORT:5432}/${POSTGRES_COMMAND_DB:emaildb}
+      username: ${POSTGRES_USER:postgres}
+      password: ${POSTGRES_PASSWORD:Passw0rd}
+      driver-class-name: org.postgresql.Driver
+    query:
+      jdbcUrl: jdbc:postgresql://${POSTGRES_HOST:20.249.204.253}:${POSTGRES_PORT:5432}/${POSTGRES_QUERY_DB:emailviews}
+      username: ${POSTGRES_USER:postgres}
+      password: ${POSTGRES_PASSWORD:Passw0rd}
+      driver-class-name: org.postgresql.Driver
 
-     hikari:
-       maximum-pool-size: 5
-       minimum-idle: 2
-       idle-timeout: 30000
-       connection-timeout: 20000
+      hikari:
+        maximum-pool-size: 5
+        minimum-idle: 2
+        idle-timeout: 30000
+        connection-timeout: 20000
   jpa:
     hibernate:
       ddl-auto: ${JPA_DDL_AUTO:update}
