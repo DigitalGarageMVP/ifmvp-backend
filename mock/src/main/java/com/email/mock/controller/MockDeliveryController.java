@@ -42,31 +42,31 @@ public class MockDeliveryController {
    @Operation(summary = "이메일 발송 시뮬레이션", description = "이메일 발송을 시뮬레이션합니다.")
    public ResponseEntity<ApiResponse<MockDeliveryResponse>> deliverEmail(
            @Valid @RequestBody EmailDeliveryRequest request) {
-       
+
        log.info("이메일 발송 시뮬레이션 요청: emailId={}", request.getEmailId());
-       
+
        String mockEmailId = generateEventId();
        List<DeliveryResult> results = simulateDeliveryStatus(request.getRecipientEmails());
-       
-       // 발송 상태 결정 (모든 수신자가 실패하면 FAILED, 일부만 성공해도 PARTIALLY_DELIVERED)
+
+       // 발송 상태 결정
        String deliveryStatus = results.stream().allMatch(r -> "FAILED".equals(r.getStatus()))
                ? "FAILED"
                : (results.stream().anyMatch(r -> "FAILED".equals(r.getStatus()))
-                   ? "PARTIALLY_DELIVERED"
-                   : "DELIVERED");
-       
+               ? "PARTIALLY_DELIVERED"
+               : "DELIVERED");
+
        // 이메일 발송 이벤트 발행
        publishEmailDeliveryEvent(mockEmailId, request, results);
-       
+
        MockDeliveryResponse response = MockDeliveryResponse.builder()
                .success(!"FAILED".equals(deliveryStatus))
                .mockEmailId(mockEmailId)
                .deliveryStatus(deliveryStatus)
                .results(results)
                .build();
-       
+
        log.info("이메일 발송 시뮬레이션 완료: mockEmailId={}, status={}", mockEmailId, deliveryStatus);
-       
+
        return ResponseEntity.ok(ApiResponse.success(response));
    }
    
@@ -142,16 +142,22 @@ public class MockDeliveryController {
    private List<DeliveryResult> simulateDeliveryStatus(List<String> recipientEmails) {
        Random random = new Random();
        LocalDateTime now = LocalDateTime.now();
-       
+
+       // 상태 문자열 목록 명시적 정의
+       String[] statusOptions = {"DELIVERED", "FAILED"};
+
        return recipientEmails.stream()
                .map(email -> {
-                   // 90% 확률로 성공, 10% 확률로 실패
-                   String status = random.nextDouble() < 0.9 ? "DELIVERED" : "FAILED";
-                   
+                   // 90% 확률로 성공, 10% 확률로 실패 (더 명시적으로 구현)
+                   String status = random.nextDouble() < 0.9 ? statusOptions[0] : statusOptions[1];
+
+                   // 로그 추가
+                   log.debug("생성된 상태 값: {}, 수신자: {}", status, email);
+
                    return DeliveryResult.builder()
                            .recipientEmail(email)
                            .status(status)
-                           .timestamp(now.format(DATE_TIME_FORMATTER))
+                           .timestamp(now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                            .build();
                })
                .collect(Collectors.toList());
