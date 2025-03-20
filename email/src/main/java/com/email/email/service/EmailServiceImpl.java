@@ -170,7 +170,7 @@ public class EmailServiceImpl implements EmailService {
 
                 messagePublisher.publishEmailEvent(emailEvent);
                 log.info("이메일 발송 이벤트 발행 완료");
-
+                sample.stop(emailSendTimer);
                 return EmailSendResponse.builder()
                         .success(deliveryResponse.isSuccess())
                         .messageId(emailId)
