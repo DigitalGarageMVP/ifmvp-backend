@@ -229,7 +229,7 @@ public class EmailRepositoryImpl implements EmailRepository {
         }
 
         // 최근 순으로 정렬
-        sql.append(" ORDER BY request_time DESC");
+        sql.append(" ORDER BY request_time DESC limit 20");
 
         try {
             return queryDb.query(sql.toString(), new EmailRowMapper(), params.toArray());
