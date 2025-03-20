@@ -7,6 +7,8 @@ import com.email.common.util.ValidationUtils;
 import com.email.email.domain.*;
 import com.email.email.dto.*;
 import com.email.email.repository.EmailRepository;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+
 /**
  * 이메일 서비스 구현 클래스입니다.
  */
@@ -37,6 +40,9 @@ public class EmailServiceImpl implements EmailService {
     private final AttachmentService attachmentService;
     private final MockDeliveryClient mockDeliveryClient;
     private final MessagePublisher messagePublisher;
+
+    private final Timer emailSendTimer;
+    private final Counter emailSendRequestCounter;
 
     /**
      * 최근 발송 이메일 목록을 조회합니다.
@@ -81,114 +87,128 @@ public class EmailServiceImpl implements EmailService {
     @Override
     @Transactional
     public EmailSendResponse sendEmail(EmailSendRequest request) {
+
         log.info("이메일 발송 요청: senderEmail={}, subject={}", request.getSenderEmail(), request.getSubject());
 
-        validateEmailData(request);
-
-        String emailId = UUID.randomUUID().toString();
-
-        // 이메일 메타데이터 저장
-        Email email = Email.builder()
-                .id(emailId)
-                .userId(request.getSenderEmail()) // 임시로 발신자 이메일을 userId로 사용
-                .subject(request.getSubject())
-                .senderEmail(request.getSenderEmail())
-                .senderName(request.getSenderName())
-                .content(request.getContent())
-                .requestTime(LocalDateTime.now())
-                .status(EmailStatus.QUEUED)
-                .build();
-
-        log.debug("저장할 이메일 정보: {}", email);
+        emailSendRequestCounter.increment();
+        Timer.Sample sample = Timer.start();
 
         try {
-            Email savedEmail = emailRepository.saveEmail(email);
-            log.info("이메일 메타데이터 저장 완료: id={}", savedEmail.getId());
+            validateEmailData(request);
 
-            // 수신자 정보 저장
-            for (String recipientEmail : request.getRecipientEmails()) {
-                EmailRecipient recipient = EmailRecipient.builder()
-                        .id(UUID.randomUUID().toString())
+            String emailId = UUID.randomUUID().toString();
+
+            // 이메일 메타데이터 저장
+            Email email = Email.builder()
+                    .id(emailId)
+                    .userId(request.getSenderEmail()) // 임시로 발신자 이메일을 userId로 사용
+                    .subject(request.getSubject())
+                    .senderEmail(request.getSenderEmail())
+                    .senderName(request.getSenderName())
+                    .content(request.getContent())
+                    .requestTime(LocalDateTime.now())
+                    .status(EmailStatus.QUEUED)
+                    .build();
+
+            log.debug("저장할 이메일 정보: {}", email);
+
+            try {
+                Email savedEmail = emailRepository.saveEmail(email);
+                log.info("이메일 메타데이터 저장 완료: id={}", savedEmail.getId());
+
+                // 수신자 정보 저장
+                for (String recipientEmail : request.getRecipientEmails()) {
+                    EmailRecipient recipient = EmailRecipient.builder()
+                            .id(UUID.randomUUID().toString())
+                            .emailId(emailId)
+                            .recipientEmail(recipientEmail)
+                            .status(RecipientStatus.PENDING)
+                            .build();
+
+                    emailRepository.saveRecipient(recipient);
+                }
+                log.info("수신자 정보 저장 완료: count={}", request.getRecipientEmails().size());
+
+                // 첨부파일 연결 (있는 경우)
+                if (request.getAttachmentIds() != null && !request.getAttachmentIds().isEmpty()) {
+                    List<AttachmentMetadata> attachments = attachmentService.getAttachmentDetails(request.getAttachmentIds());
+
+                    for (AttachmentMetadata attachment : attachments) {
+                        EmailAttachment emailAttachment = EmailAttachment.builder()
+                                .emailId(emailId)
+                                .attachmentId(attachment.getId())
+                                .build();
+                        emailRepository.saveEmailAttachment(emailAttachment);
+                    }
+                    log.info("첨부파일 연결 완료: count={}", attachments.size());
+                }
+
+                // 목업 서비스로 발송 요청
+                EmailDeliveryRequest deliveryRequest = EmailDeliveryRequest.builder()
                         .emailId(emailId)
-                        .recipientEmail(recipientEmail)
-                        .status(RecipientStatus.PENDING)
+                        .senderEmail(request.getSenderEmail())
+                        .recipientEmails(request.getRecipientEmails())
+                        .subject(request.getSubject())
+                        .content(request.getContent())
+                        .attachmentIds(request.getAttachmentIds())
                         .build();
 
-                emailRepository.saveRecipient(recipient);
-            }
-            log.info("수신자 정보 저장 완료: count={}", request.getRecipientEmails().size());
+                log.info("목업 서비스로 발송 요청 시작");
+                MockDeliveryResponse deliveryResponse = mockDeliveryClient.deliverEmail(deliveryRequest);
+                log.info("목업 서비스 응답 수신: status={}", deliveryResponse.getDeliveryStatus());
 
-            // 첨부파일 연결 (있는 경우)
-            if (request.getAttachmentIds() != null && !request.getAttachmentIds().isEmpty()) {
-                List<AttachmentMetadata> attachments = attachmentService.getAttachmentDetails(request.getAttachmentIds());
+                // 발송 이벤트 발행
+                Map<String, Object> eventData = new HashMap<>();
+                eventData.put("emailId", emailId);
+                eventData.put("status", deliveryResponse.getDeliveryStatus());
+                eventData.put("mockEmailId", deliveryResponse.getMockEmailId());
 
-                for (AttachmentMetadata attachment : attachments) {
-                    EmailAttachment emailAttachment = EmailAttachment.builder()
-                            .emailId(emailId)
-                            .attachmentId(attachment.getId())
-                            .build();
-                    emailRepository.saveEmailAttachment(emailAttachment);
+                EmailEvent emailEvent = EmailEvent.builder()
+                        .eventType("EMAIL_SENT")
+                        .emailData(eventData)
+                        .build();
+
+                messagePublisher.publishEmailEvent(emailEvent);
+                log.info("이메일 발송 이벤트 발행 완료");
+
+                return EmailSendResponse.builder()
+                        .success(deliveryResponse.isSuccess())
+                        .messageId(emailId)
+                        .status(deliveryResponse.getDeliveryStatus())
+                        .build();
+            } catch (Exception e) {
+                log.error("이메일 발송 처리 중 오류 발생", e);
+                // 예외의 자세한 내용 로깅
+                log.error("Exception class: {}, Message: {}", e.getClass().getName(), e.getMessage());
+                if (e.getCause() != null) {
+                    log.error("Cause: {}, Message: {}", e.getCause().getClass().getName(), e.getCause().getMessage());
                 }
-                log.info("첨부파일 연결 완료: count={}", attachments.size());
+
+                // 스택 트레이스 전체 로깅
+                StringWriter sw = new StringWriter();
+                e.printStackTrace(new PrintWriter(sw));
+                log.error("Stack trace: {}", sw.toString());
+
+                throw e; // 예외 재발생
             }
-
-            // 목업 서비스로 발송 요청
-            EmailDeliveryRequest deliveryRequest = EmailDeliveryRequest.builder()
-                    .emailId(emailId)
-                    .senderEmail(request.getSenderEmail())
-                    .recipientEmails(request.getRecipientEmails())
-                    .subject(request.getSubject())
-                    .content(request.getContent())
-                    .attachmentIds(request.getAttachmentIds())
-                    .build();
-
-            log.info("목업 서비스로 발송 요청 시작");
-            MockDeliveryResponse deliveryResponse = mockDeliveryClient.deliverEmail(deliveryRequest);
-            log.info("목업 서비스 응답 수신: status={}", deliveryResponse.getDeliveryStatus());
-
-            // 발송 이벤트 발행
-            Map<String, Object> eventData = new HashMap<>();
-            eventData.put("emailId", emailId);
-            eventData.put("status", deliveryResponse.getDeliveryStatus());
-            eventData.put("mockEmailId", deliveryResponse.getMockEmailId());
-
-            EmailEvent emailEvent = EmailEvent.builder()
-                    .eventType("EMAIL_SENT")
-                    .emailData(eventData)
-                    .build();
-
-            messagePublisher.publishEmailEvent(emailEvent);
-            log.info("이메일 발송 이벤트 발행 완료");
-
-            return EmailSendResponse.builder()
-                    .success(deliveryResponse.isSuccess())
-                    .messageId(emailId)
-                    .status(deliveryResponse.getDeliveryStatus())
-                    .build();
         } catch (Exception e) {
-            log.error("이메일 발송 처리 중 오류 발생", e);
-            // 예외의 자세한 내용 로깅
-            log.error("Exception class: {}, Message: {}", e.getClass().getName(), e.getMessage());
-            if (e.getCause() != null) {
-                log.error("Cause: {}, Message: {}", e.getCause().getClass().getName(), e.getCause().getMessage());
-            }
+//            log.error("이메일 발송 처리 중 오류 발생", e);
+            // 기존 에러 처리 코드...
 
-            // 스택 트레이스 전체 로깅
-            StringWriter sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
-            log.error("Stack trace: {}", sw.toString());
-
-            throw e; // 예외 재발생
+            throw e;
         }
+
+
     }
+
 
     /**
      * 이메일 발송 이력을 상세 조회합니다.
      *
-     * @param startDate 시작일
-     * @param endDate 종료일
-     * @param senderEmail 발신자 이메일
-     * @param status 발송 상태
+     * @param startDate      시작일
+     * @param endDate        종료일
+     * @param senderEmail    발신자 이메일
+     * @param status         발송 상태
      * @param recipientEmail 수신자 이메일
      * @return 이메일 발송 이력 목록
      */
@@ -292,7 +312,7 @@ public class EmailServiceImpl implements EmailService {
      * 날짜 범위의 유효성을 검사합니다.
      *
      * @param startDate 시작일
-     * @param endDate 종료일
+     * @param endDate   종료일
      * @throws BusinessException 유효성 검사 실패 시
      */
     private void validateDateRange(LocalDate startDate, LocalDate endDate) {
