@@ -111,6 +111,7 @@ public class AttachmentServiceImpl implements AttachmentService {
                .fileSize(metadata.getFileSize())
                .uploadTime(metadata.getUploadTime().format(DATE_TIME_FORMATTER))
                .status(metadata.getStatus().name())
+               .downloadUrl(metadata.getDownloadUrl())
                .build();
    }
 

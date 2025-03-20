@@ -24,7 +24,7 @@ azure:
     connection-string: ${AZURE_SERVICEBUS_CONNECTION_STRING:Endpoint=sb://sb-if-ifmvp.servicebus.windows.net/;SharedAccessKeyName=if-backend;SharedAccessKey=IicFGjdVwp8YlkSCKYgRyOZ7cubKSvHJG+ASbH5ah9M=}
     queue:
       email-events: ${AZURE_QUEUE_EMAIL_EVENTS:email-events}
-      email-open-events: ${AZURE_QUEUE_EMAIL_EVENTS:email-events}
+      email-open-events: ${AZURE_QUEUE_EMAIL_EVENTS:email-open-events}
       attachment-click-events: ${AZURE_QUEUE_OPEN_EVENTS:email-open-events}
 
 jwt:
