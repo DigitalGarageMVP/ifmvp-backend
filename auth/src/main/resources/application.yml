@@ -52,3 +52,15 @@ management:
       enabled: true
     readinessState:
       enabled: true
+  metrics:
+    tags:
+      app: ${spring.application.name}
+      instance: ${HOSTNAME:localhost}:${server.port}
+    export:
+      prometheus:
+        enabled: true
+        step: 15s
+  prometheus:
+    metrics:
+      export:
+        enabled: true
