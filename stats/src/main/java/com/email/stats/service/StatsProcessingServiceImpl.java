@@ -1,6 +1,7 @@
 package com.email.stats.service;
 
 import com.email.stats.repository.StatsRepository;
+import io.micrometer.core.instrument.Counter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,8 @@ import java.util.Map;
 public class StatsProcessingServiceImpl implements StatsProcessingService {
 
    private final StatsRepository statsRepository;
+    private final Counter emailOpenEventCounter;
+    private final Counter attachmentClickEventCounter;
    
    /**
     * 이메일 발송 이벤트를 처리합니다.
@@ -27,7 +30,7 @@ public class StatsProcessingServiceImpl implements StatsProcessingService {
    @Transactional
    public void processEmailDeliveryEvent(Map<String, Object> event) {
        log.info("이메일 발송 이벤트 처리: mockEmailId={}", event.get("mockEmailId"));
-       
+
        try {
            statsRepository.updateDeliveryStats(event);
            log.info("이메일 발송 통계 업데이트 완료");
@@ -46,7 +49,9 @@ public class StatsProcessingServiceImpl implements StatsProcessingService {
    @Transactional
    public void processEmailOpenEvent(Map<String, Object> event) {
        log.info("이메일 오픈 이벤트 처리: eventId={}", event.get("eventId"));
-       
+
+       emailOpenEventCounter.increment();
+
        try {
            statsRepository.updateOpenStats(event);
            log.info("이메일 오픈 통계 업데이트 완료");
@@ -65,7 +70,9 @@ public class StatsProcessingServiceImpl implements StatsProcessingService {
    @Transactional
    public void processAttachmentClickEvent(Map<String, Object> event) {
        log.info("첨부파일 클릭 이벤트 처리: eventId={}", event.get("eventId"));
-       
+
+       attachmentClickEventCounter.increment();
+
        try {
            statsRepository.updateAttachmentStats(event);
            log.info("첨부파일 클릭 통계 업데이트 완료");

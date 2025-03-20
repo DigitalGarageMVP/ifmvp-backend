@@ -6,6 +6,8 @@ import com.email.stats.dto.ChartData;
 import com.email.stats.dto.DashboardSummaryResponse;
 import com.email.stats.dto.EmailOpenStatisticsResponse;
 import com.email.stats.repository.StatsRepository;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,8 @@ public class StatsQueryServiceImpl implements StatsQueryService {
 
    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
    private final StatsRepository statsRepository;
+    private final Timer statsQueryTimer;
+    private final Counter statsRequestCounter;
    
    /**
     * 대시보드 요약 정보를 조회합니다.
@@ -38,35 +42,51 @@ public class StatsQueryServiceImpl implements StatsQueryService {
    @Transactional(readOnly = true)
    public DashboardSummaryResponse getDashboardSummary(LocalDate startDate, LocalDate endDate) {
        log.info("대시보드 요약 정보 조회: startDate={}, endDate={}", startDate, endDate);
-       
-       // 발송 통계 조회
-       List<DeliveryStats> deliveryStats = statsRepository.getDeliveryStats(startDate, endDate);
-       
-       // 발송 총계 계산
-       int totalSentCount = deliveryStats.stream().mapToInt(DeliveryStats::getTotalCount).sum();
-       int successCount = deliveryStats.stream().mapToInt(DeliveryStats::getSuccessCount).sum();
-       int failCount = deliveryStats.stream().mapToInt(DeliveryStats::getFailCount).sum();
-       
-       // 오픈 통계 조회
-       List<OpenStats> openStats = statsRepository.getOpenStats(startDate, endDate, null);
-       int totalOpens = openStats.stream().mapToInt(OpenStats::getOpenCount).sum();
-       
-       // 첨부파일 클릭 통계 조회
-       List<AttachmentStats> attachmentStats = statsRepository.getAttachmentStats(startDate, endDate, null);
-       int totalAttachmentClicks = attachmentStats.stream().mapToInt(AttachmentStats::getClickCount).sum();
-       
-       // 일별 통계 조회
-       List<DailyStats> dailyStats = statsRepository.getDailyStats(startDate, endDate);
-       List<ChartData> chartData = processChartData(dailyStats);
-       
-       return DashboardSummaryResponse.builder()
-               .totalSentCount(totalSentCount)
-               .successCount(successCount)
-               .failCount(failCount)
-               .totalOpens(totalOpens)
-               .totalAttachmentClicks(totalAttachmentClicks)
-               .dailyStats(chartData)
-               .build();
+
+       statsRequestCounter.increment();
+       Timer.Sample sample = Timer.start();
+
+       try {
+           // 기존 메서드 코드 유지...
+
+           // Existing code...
+
+           log.info("대시보드 요약 정보 조회: startDate={}, endDate={}", startDate, endDate);
+
+           // 발송 통계 조회
+           List<DeliveryStats> deliveryStats = statsRepository.getDeliveryStats(startDate, endDate);
+
+           // 발송 총계 계산
+           int totalSentCount = deliveryStats.stream().mapToInt(DeliveryStats::getTotalCount).sum();
+           int successCount = deliveryStats.stream().mapToInt(DeliveryStats::getSuccessCount).sum();
+           int failCount = deliveryStats.stream().mapToInt(DeliveryStats::getFailCount).sum();
+
+           // 오픈 통계 조회
+           List<OpenStats> openStats = statsRepository.getOpenStats(startDate, endDate, null);
+           int totalOpens = openStats.stream().mapToInt(OpenStats::getOpenCount).sum();
+
+           // 첨부파일 클릭 통계 조회
+           List<AttachmentStats> attachmentStats = statsRepository.getAttachmentStats(startDate, endDate, null);
+           int totalAttachmentClicks = attachmentStats.stream().mapToInt(AttachmentStats::getClickCount).sum();
+
+           // 일별 통계 조회
+           List<DailyStats> dailyStats = statsRepository.getDailyStats(startDate, endDate);
+           List<ChartData> chartData = processChartData(dailyStats);
+
+           return DashboardSummaryResponse.builder()
+                   .totalSentCount(totalSentCount)
+                   .successCount(successCount)
+                   .failCount(failCount)
+                   .totalOpens(totalOpens)
+                   .totalAttachmentClicks(totalAttachmentClicks)
+                   .dailyStats(chartData)
+                   .build();
+       } catch (Exception e) {
+           log.error("대시보드 요약 정보 조회 중 오류 발생", e);
+           throw e;
+       }
+
+
    }
    
    /**
@@ -81,26 +101,42 @@ public class StatsQueryServiceImpl implements StatsQueryService {
    @Transactional(readOnly = true)
    public List<EmailOpenStatisticsResponse> getEmailOpenStatistics(
            LocalDate startDate, LocalDate endDate, String emailCategory) {
-       log.info("이메일 오픈 통계 조회: startDate={}, endDate={}, emailCategory={}", 
+
+       log.info("이메일 오픈 통계 조회: startDate={}, endDate={}, emailCategory={}",
                startDate, endDate, emailCategory);
-       
-       List<OpenStats> openStats = statsRepository.getOpenStats(startDate, endDate, emailCategory);
-       
-       return openStats.stream()
-               .map(stat -> {
-                   double openRate = stat.getTotalEmails() > 0 
-                           ? (double) stat.getOpenCount() / stat.getTotalEmails() * 100 
-                           : 0;
-                   
-                   return EmailOpenStatisticsResponse.builder()
-                           .date(stat.getDate().format(DATE_FORMATTER))
-                           .emailCategory(stat.getEmailCategory())
-                           .totalEmails(stat.getTotalEmails())
-                           .openCount(stat.getOpenCount())
-                           .openRate(Math.round(openRate * 100) / 100.0) // 소수점 둘째자리까지 반올림
-                           .build();
-               })
-               .collect(Collectors.toList());
+
+       statsRequestCounter.increment();
+       Timer.Sample sample = Timer.start();
+
+       try {
+           // 기존 메서드 코드 유지...
+
+           // Existing code...
+           List<OpenStats> openStats = statsRepository.getOpenStats(startDate, endDate, emailCategory);
+           sample.stop(statsQueryTimer);
+           return openStats.stream()
+                   .map(stat -> {
+                       double openRate = stat.getTotalEmails() > 0
+                               ? (double) stat.getOpenCount() / stat.getTotalEmails() * 100
+                               : 0;
+
+                       return EmailOpenStatisticsResponse.builder()
+                               .date(stat.getDate().format(DATE_FORMATTER))
+                               .emailCategory(stat.getEmailCategory())
+                               .totalEmails(stat.getTotalEmails())
+                               .openCount(stat.getOpenCount())
+                               .openRate(Math.round(openRate * 100) / 100.0) // 소수점 둘째자리까지 반올림
+                               .build();
+                   })
+                   .collect(Collectors.toList());
+       } catch (Exception e) {
+           log.error("이메일 오픈 통계 조회 중 오류 발생", e);
+           throw e;
+       }
+
+
+
+
    }
    
    /**
@@ -115,26 +151,40 @@ public class StatsQueryServiceImpl implements StatsQueryService {
    @Transactional(readOnly = true)
    public List<AttachmentClickStatisticsResponse> getAttachmentClickStatistics(
            LocalDate startDate, LocalDate endDate, String fileType) {
-       log.info("첨부파일 클릭 통계 조회: startDate={}, endDate={}, fileType={}", 
+
+       log.info("첨부파일 클릭 통계 조회: startDate={}, endDate={}, fileType={}",
                startDate, endDate, fileType);
-       
-       List<AttachmentStats> attachmentStats = statsRepository.getAttachmentStats(startDate, endDate, fileType);
-       
-       return attachmentStats.stream()
-               .map(stat -> {
-                   double clickRate = stat.getTotalAttachments() > 0 
-                           ? (double) stat.getClickCount() / stat.getTotalAttachments() * 100 
-                           : 0;
-                   
-                   return AttachmentClickStatisticsResponse.builder()
-                           .date(stat.getDate().format(DATE_FORMATTER))
-                           .fileType(stat.getFileType())
-                           .totalAttachments(stat.getTotalAttachments())
-                           .clickCount(stat.getClickCount())
-                           .clickRate(Math.round(clickRate * 100) / 100.0) // 소수점 둘째자리까지 반올림
-                           .build();
-               })
-               .collect(Collectors.toList());
+
+       statsRequestCounter.increment();
+       Timer.Sample sample = Timer.start();
+
+       try {
+           // 기존 메서드 코드 유지...
+
+           // Existing code...
+           List<AttachmentStats> attachmentStats = statsRepository.getAttachmentStats(startDate, endDate, fileType);
+           sample.stop(statsQueryTimer);
+           return attachmentStats.stream()
+                   .map(stat -> {
+                       double clickRate = stat.getTotalAttachments() > 0
+                               ? (double) stat.getClickCount() / stat.getTotalAttachments() * 100
+                               : 0;
+
+                       return AttachmentClickStatisticsResponse.builder()
+                               .date(stat.getDate().format(DATE_FORMATTER))
+                               .fileType(stat.getFileType())
+                               .totalAttachments(stat.getTotalAttachments())
+                               .clickCount(stat.getClickCount())
+                               .clickRate(Math.round(clickRate * 100) / 100.0) // 소수점 둘째자리까지 반올림
+                               .build();
+                   })
+                   .collect(Collectors.toList());
+       } catch (Exception e) {
+           log.error("첨부파일 클릭 통계 조회 중 오류 발생", e);
+           throw e;
+       }
+
+
    }
    
    /**
