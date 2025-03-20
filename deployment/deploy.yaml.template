@@ -112,6 +112,10 @@ spec:
     metadata:
       labels:
         app: auth
+    annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8080"  # **서비스의 application.yml의 server.port와 동일해야 함**
     spec:
       containers:
       - name: auth-container
@@ -180,6 +184,10 @@ spec:
     metadata:
       labels:
         app: email
+    annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8081"  # **서비스의 application.yml의 server.port와 동일해야 함**
     spec:
       containers:
       - name: email-container
@@ -248,6 +256,10 @@ spec:
     metadata:
       labels:
         app: mock
+    annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8082"  # **서비스의 application.yml의 server.port와 동일해야 함**
     spec:
       containers:
       - name: mock-container
@@ -317,6 +329,10 @@ spec:
     metadata:
       labels:
         app: stats
+    annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8083"  # **서비스의 application.yml의 server.port와 동일해야 함**
     spec:
       containers:
       - name: stats-container
