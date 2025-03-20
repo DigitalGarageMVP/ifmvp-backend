@@ -3,6 +3,7 @@ package com.email.stats.controller;
 import com.email.common.dto.ApiResponse;
 import com.email.stats.dto.DashboardSummaryResponse;
 import com.email.stats.service.StatsQueryService;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,7 +27,7 @@ import java.time.LocalDate;
 public class DashboardController {
 
     private final StatsQueryService statsQueryService;
-    
+
     /**
      * 대시보드 요약 정보를 조회합니다.
      *
@@ -35,23 +36,26 @@ public class DashboardController {
      * @return 대시보드 요약 정보
      */
     @GetMapping("/dashboard")
+    @Timed(value = "stats.dashboard.metrics",
+            description = "대시보드 메트릭 조회 시간",
+            percentiles = {0.5, 0.95, 0.99})
     @Operation(summary = "대시보드 정보 조회", description = "대시보드 정보를 조회합니다.")
     public ResponseEntity<ApiResponse<DashboardSummaryResponse>> getDashboardSummary(
             @Parameter(description = "시작일", example = "2023-01-01")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            
+
             @Parameter(description = "종료일", example = "2023-12-31")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        
+
         // 기본값: 최근 30일
         if (startDate == null) {
             startDate = LocalDate.now().minusDays(30);
         }
-        
+
         if (endDate == null) {
             endDate = LocalDate.now();
         }
-        
+
         DashboardSummaryResponse response = statsQueryService.getDashboardSummary(startDate, endDate);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
