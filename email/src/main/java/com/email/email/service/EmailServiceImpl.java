@@ -7,10 +7,12 @@ import com.email.common.util.ValidationUtils;
 import com.email.email.domain.*;
 import com.email.email.dto.*;
 import com.email.email.repository.EmailRepository;
+import io.micrometer.core.instrument.Counter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import io.micrometer.core.instrument.Timer;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -37,6 +39,9 @@ public class EmailServiceImpl implements EmailService {
     private final AttachmentService attachmentService;
     private final MockDeliveryClient mockDeliveryClient;
     private final MessagePublisher messagePublisher;
+    private final Timer emailSendTimer;
+    private final Counter emailRequestCounter;
+    private final Counter emailErrorCounter;
 
     /**
      * 최근 발송 이메일 목록을 조회합니다.
@@ -83,25 +88,29 @@ public class EmailServiceImpl implements EmailService {
     public EmailSendResponse sendEmail(EmailSendRequest request) {
         log.info("이메일 발송 요청: senderEmail={}, subject={}", request.getSenderEmail(), request.getSubject());
 
-        validateEmailData(request);
+        // 이메일 요청 카운터 증가
+        emailRequestCounter.increment();
 
-        String emailId = UUID.randomUUID().toString();
-
-        // 이메일 메타데이터 저장
-        Email email = Email.builder()
-                .id(emailId)
-                .userId(request.getSenderEmail()) // 임시로 발신자 이메일을 userId로 사용
-                .subject(request.getSubject())
-                .senderEmail(request.getSenderEmail())
-                .senderName(request.getSenderName())
-                .content(request.getContent())
-                .requestTime(LocalDateTime.now())
-                .status(EmailStatus.QUEUED)
-                .build();
-
-        log.debug("저장할 이메일 정보: {}", email);
+        // 이메일 발송 시간 측정 시작
+        Timer.Sample emailSendSample = Timer.start();
 
         try {
+            validateEmailData(request);
+
+            String emailId = UUID.randomUUID().toString();
+
+            // 이메일 메타데이터 저장
+            Email email = Email.builder()
+                    .id(emailId)
+                    .userId(request.getSenderEmail()) // 임시로 발신자 이메일을 userId로 사용
+                    .subject(request.getSubject())
+                    .senderEmail(request.getSenderEmail())
+                    .senderName(request.getSenderName())
+                    .content(request.getContent())
+                    .requestTime(LocalDateTime.now())
+                    .status(EmailStatus.QUEUED)
+                    .build();
+
             Email savedEmail = emailRepository.saveEmail(email);
             log.info("이메일 메타데이터 저장 완료: id={}", savedEmail.getId());
 
@@ -160,25 +169,26 @@ public class EmailServiceImpl implements EmailService {
             messagePublisher.publishEmailEvent(emailEvent);
             log.info("이메일 발송 이벤트 발행 완료");
 
-            return EmailSendResponse.builder()
+            EmailSendResponse response = EmailSendResponse.builder()
                     .success(deliveryResponse.isSuccess())
                     .messageId(emailId)
                     .status(deliveryResponse.getDeliveryStatus())
                     .build();
+
+            // 이메일 발송 시간 측정 종료
+            emailSendSample.stop(emailSendTimer);
+
+            return response;
+
         } catch (Exception e) {
+            // 이메일 오류 카운터 증가
+            emailErrorCounter.increment();
+
+            // 오류 발생 시에도 타이머 측정 종료
+            emailSendSample.stop(emailSendTimer);
+
             log.error("이메일 발송 처리 중 오류 발생", e);
-            // 예외의 자세한 내용 로깅
-            log.error("Exception class: {}, Message: {}", e.getClass().getName(), e.getMessage());
-            if (e.getCause() != null) {
-                log.error("Cause: {}, Message: {}", e.getCause().getClass().getName(), e.getCause().getMessage());
-            }
-
-            // 스택 트레이스 전체 로깅
-            StringWriter sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
-            log.error("Stack trace: {}", sw.toString());
-
-            throw e; // 예외 재발생
+            throw e;
         }
     }
 
