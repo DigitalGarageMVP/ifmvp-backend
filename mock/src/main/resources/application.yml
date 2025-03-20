@@ -63,11 +63,10 @@ management:
     tags:
       app: ${spring.application.name}
       instance: ${HOSTNAME:localhost}:${server.port}
-    export:
-      prometheus:
-        enabled: true
-        step: 15s
-  prometheus:
-    metrics:
-      export:
-        enabled: true
+    enable:
+      all: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      sla:
+        http.server.requests: 50ms, 100ms, 200ms, 500ms, 1000ms, 2000ms

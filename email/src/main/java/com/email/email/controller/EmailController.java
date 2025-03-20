@@ -6,6 +6,7 @@ import com.email.email.dto.EmailSendRequest;
 import com.email.email.dto.EmailSendResponse;
 import com.email.email.dto.RecentEmailListResponse;
 import com.email.email.service.EmailService;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,6 +21,7 @@ import java.util.List;
 
 /**
  * 이메일 API 컨트롤러입니다.
+ * 메트릭 수집을 위한 @Timed 어노테이션이 추가되었습니다.
  */
 @RestController
 @RequestMapping("/api/emails")
@@ -37,6 +39,7 @@ public class EmailController {
      */
     @GetMapping("/recent")
     @Operation(summary = "최근 발송 이메일 목록 조회", description = "최근 발송한 이메일 목록을 조회합니다.")
+    @Timed(value = "email_recent_api_time", description = "최근 이메일 조회 API 응답 시간")
     public ResponseEntity<ApiResponse<List<RecentEmailListResponse>>> getRecentEmails(
             @Parameter(description = "사용자 ID", example = "user01")
             @RequestParam String userId) {
@@ -52,6 +55,7 @@ public class EmailController {
      */
     @PostMapping("/send")
     @Operation(summary = "이메일 발송", description = "이메일을 발송합니다.")
+    @Timed(value = "email_send_api_time", description = "이메일 발송 API 응답 시간")
     public ResponseEntity<ApiResponse<EmailSendResponse>> sendEmail(
             @Valid @RequestBody EmailSendRequest request) {
         EmailSendResponse response = emailService.sendEmail(request);
@@ -70,6 +74,7 @@ public class EmailController {
      */
     @GetMapping("/history")
     @Operation(summary = "이메일 발송 이력 상세 조회", description = "이메일 발송 이력을 상세 조회합니다.")
+    @Timed(value = "email_history_api_time", description = "이메일 이력 조회 API 응답 시간")
     public ResponseEntity<ApiResponse<List<EmailHistoryResponse>>> getEmailHistory(
             @Parameter(description = "시작일", example = "2023-01-01")
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
