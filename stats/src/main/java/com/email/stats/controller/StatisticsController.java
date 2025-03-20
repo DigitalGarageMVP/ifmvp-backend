@@ -4,6 +4,7 @@ import com.email.common.dto.ApiResponse;
 import com.email.stats.dto.AttachmentClickStatisticsResponse;
 import com.email.stats.dto.EmailOpenStatisticsResponse;
 import com.email.stats.service.StatsQueryService;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,6 +39,9 @@ public class StatisticsController {
     * @return 이메일 오픈 통계 목록
     */
    @GetMapping("/opens")
+   @Timed(value = "stats.email.open.metrics",
+           description = "이메일 오픈 통계 조회 시간",
+           percentiles = {0.5, 0.95, 0.99})
    @Operation(summary = "이메일 오픈 통계 조회", description = "이메일 오픈 통계를 조회합니다.")
    public ResponseEntity<ApiResponse<List<EmailOpenStatisticsResponse>>> getEmailOpenStatistics(
            @Parameter(description = "시작일", example = "2023-01-01")
@@ -72,6 +76,9 @@ public class StatisticsController {
     * @return 첨부파일 클릭 통계 목록
     */
    @GetMapping("/attachments")
+   @Timed(value = "stats.attachment.click.metrics",
+           description = "첨부파일 클릭 통계 조회 시간",
+           percentiles = {0.5, 0.95, 0.99})
    @Operation(summary = "첨부파일 클릭 통계 조회", description = "첨부파일 클릭 통계를 조회합니다.")
    public ResponseEntity<ApiResponse<List<AttachmentClickStatisticsResponse>>> getAttachmentClickStatistics(
            @Parameter(description = "시작일", example = "2023-01-01")
