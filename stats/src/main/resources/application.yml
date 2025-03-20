@@ -52,6 +52,8 @@ management:
       show-details: always
       probes:
         enabled: true
+    prometheus:
+      enabled: true
   health:
     livenessState:
       enabled: true
@@ -65,6 +67,13 @@ management:
       prometheus:
         enabled: true
         step: 15s
+    enable:
+      all: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      sla:
+        http.server.requests: 50ms, 100ms, 200ms, 500ms, 1000ms, 2000ms
   prometheus:
     metrics:
       export:
